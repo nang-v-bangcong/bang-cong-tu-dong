@@ -4,7 +4,7 @@ import { create } from 'zustand'
 export type CellSnap = {
   userId: number
   day: number
-  state: { coef: number; wsID: number | null } | null
+  state: { coef: number; wsID: number | null; note: string } | null
 }
 
 export type HistoryEntry = {

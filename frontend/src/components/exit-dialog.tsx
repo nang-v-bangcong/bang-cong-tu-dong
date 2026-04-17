@@ -22,7 +22,7 @@ export function ExitDialog() {
     // Blur active element để kích hoạt onBlur save ở các ô input.
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
     // Chờ handler onBlur hoàn tất rồi mới quit.
-    setTimeout(() => { setDirty(false); Quit() }, 150)
+    setTimeout(() => { setDirty(false); Quit() }, 300)
   }
 
   const handleDiscard = () => Quit()
@@ -39,18 +39,20 @@ export function ExitDialog() {
         <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>
           {dirty
             ? 'Bạn có thay đổi chưa lưu. Chọn hành động:'
-            : 'Bạn muốn làm gì trước khi đóng ứng dụng?'}
+            : 'Bạn có chắc muốn thoát ứng dụng?'}
         </p>
         <div className="flex flex-col gap-2">
-          <button onClick={handleSave}
-            className="flex items-center justify-center gap-2 py-2.5 text-white text-sm font-semibold hover:opacity-90 transition-opacity"
-            style={{ background: 'var(--primary)', borderRadius: 'var(--radius)' }}>
-            <Save size={14} /> Lưu và thoát
-          </button>
+          {dirty && (
+            <button onClick={handleSave}
+              className="flex items-center justify-center gap-2 py-2.5 text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+              style={{ background: 'var(--primary)', borderRadius: 'var(--radius)' }}>
+              <Save size={14} /> Lưu và thoát
+            </button>
+          )}
           <button onClick={handleDiscard}
             className="flex items-center justify-center gap-2 py-2.5 text-sm font-semibold hover:opacity-90 transition-opacity"
-            style={{ background: 'var(--danger)', color: '#fff', borderRadius: 'var(--radius)' }}>
-            <LogOut size={14} /> Thoát không lưu
+            style={{ background: dirty ? 'var(--danger)' : 'var(--primary)', color: '#fff', borderRadius: 'var(--radius)' }}>
+            <LogOut size={14} /> {dirty ? 'Thoát không lưu' : 'Thoát'}
           </button>
           <button onClick={close}
             className="flex items-center justify-center gap-2 py-2.5 text-sm hover:bg-[var(--bg-hover)] transition-colors"

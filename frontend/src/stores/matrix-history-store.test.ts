@@ -3,7 +3,7 @@ import { useHistoryStore, type HistoryEntry, type CellSnap } from './matrix-hist
 
 const mkSnap = (u: number, d: number, coef: number | null): CellSnap => ({
   userId: u, day: d,
-  state: coef === null ? null : { coef, wsID: null },
+  state: coef === null ? null : { coef, wsID: null, note: '' },
 })
 
 const mkEntry = (u: number, d: number, beforeCoef: number | null, afterCoef: number | null, ts = Date.now()): HistoryEntry => ({

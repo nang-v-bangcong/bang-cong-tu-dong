@@ -20,7 +20,8 @@ export function DayNoteCell({ day, note, onSave }: Props) {
 
   const commit = () => {
     setEditing(false)
-    if (value !== note) onSave(day, value)
+    const trimmed = value.trim()
+    if (trimmed !== note.trim()) onSave(day, trimmed)
   }
 
   if (editing) {

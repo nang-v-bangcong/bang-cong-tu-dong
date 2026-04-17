@@ -22,8 +22,16 @@ interface AppState {
   toggleMatrixCellColor: () => void
 }
 
-const now = new Date()
-const defaultYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+// Compute yearMonth in KST so month boundaries match the backend (time.go)
+// regardless of the OS timezone.
+const kstParts = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Seoul',
+  year: 'numeric',
+  month: '2-digit',
+}).formatToParts(new Date())
+const defaultYearMonth = `${kstParts.find((p) => p.type === 'year')?.value ?? '2026'}-${
+  kstParts.find((p) => p.type === 'month')?.value ?? '01'
+}`
 
 export const useAppStore = create<AppState>((set) => ({
   tab: 'personal',

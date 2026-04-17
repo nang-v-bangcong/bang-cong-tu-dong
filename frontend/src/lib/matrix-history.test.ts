@@ -11,7 +11,7 @@ const makeMatrix = (): models.TeamMatrix => ({
     {
       userId: 1, userName: 'Alice', totalDays: 2, totalCoef: 2, salary: 400000,
       cells: {
-        1: { attendanceId: 100, coefficient: 1, worksiteId: 10, worksiteName: 'A', note: '' },
+        1: { attendanceId: 100, coefficient: 1, worksiteId: 10, worksiteName: 'A', note: 'keep' },
         5: { attendanceId: 101, coefficient: 1.5, worksiteId: null as any, worksiteName: '', note: '' },
       },
     },
@@ -23,14 +23,14 @@ const makeMatrix = (): models.TeamMatrix => ({
 } as unknown as models.TeamMatrix)
 
 describe('snapshotCells', () => {
-  it('captures filled cell with worksite', () => {
+  it('captures filled cell with worksite and note', () => {
     const snaps = snapshotCells(makeMatrix(), [{ userId: 1, day: 1 }])
-    expect(snaps).toEqual([{ userId: 1, day: 1, state: { coef: 1, wsID: 10 } }])
+    expect(snaps).toEqual([{ userId: 1, day: 1, state: { coef: 1, wsID: 10, note: 'keep' } }])
   })
 
   it('captures filled cell without worksite', () => {
     const snaps = snapshotCells(makeMatrix(), [{ userId: 1, day: 5 }])
-    expect(snaps).toEqual([{ userId: 1, day: 5, state: { coef: 1.5, wsID: null } }])
+    expect(snaps).toEqual([{ userId: 1, day: 5, state: { coef: 1.5, wsID: null, note: '' } }])
   })
 
   it('captures empty cell as null state', () => {

@@ -15,7 +15,8 @@ func InitDB() (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	// One-time migration: move DB from legacy exe-dir location to AppData.
+	// One-time migration: copy DB from legacy AppData location to exe-dir so
+	// existing users keep their data after switching to portable storage.
 	if err := migrateLegacyDB(dataDir); err != nil {
 		return nil, err
 	}
@@ -33,19 +34,19 @@ func InitDB() (*sql.DB, error) {
 	return db, nil
 }
 
-// migrateLegacyDB copies bang-cong.db (+ -wal/-shm sidecars) from the exe
-// directory to the new dataDir, once, if dataDir has no DB yet.
-// Safe to call when no legacy DB exists — returns nil.
+// migrateLegacyDB copies bang-cong.db (+ -wal/-shm sidecars) from the legacy
+// AppData location into the new exe-adjacent dataDir, once, if dataDir has no
+// DB yet. Safe to call when no legacy DB exists — returns nil.
 func migrateLegacyDB(dataDir string) error {
 	newPath := filepath.Join(dataDir, "bang-cong.db")
 	if _, err := os.Stat(newPath); err == nil {
 		return nil // already migrated
 	}
-	exe, err := os.Executable()
+	root, err := os.UserConfigDir()
 	if err != nil {
 		return nil // best effort
 	}
-	legacyDir := filepath.Dir(exe)
+	legacyDir := filepath.Join(root, "bang-cong")
 	if legacyDir == dataDir {
 		return nil
 	}
@@ -151,15 +152,22 @@ func RestoreDB(srcPath string) error {
 	return nil
 }
 
-// getDataDir returns the writable data directory:
-// %AppData%\bang-cong on Windows, $XDG_CONFIG_HOME/bang-cong elsewhere.
+// getDataDir returns the writable data directory. Portable by default: the
+// folder containing the running executable, so copying the exe folder carries
+// the DB with it. Tests and power users can override via BANG_CONG_DATA_DIR.
 // The directory is created if it does not exist.
 func getDataDir() (string, error) {
-	root, err := os.UserConfigDir()
+	if override := os.Getenv("BANG_CONG_DATA_DIR"); override != "" {
+		if err := os.MkdirAll(override, 0755); err != nil {
+			return "", err
+		}
+		return override, nil
+	}
+	exe, err := os.Executable()
 	if err != nil {
 		return "", err
 	}
-	dir := filepath.Join(root, "bang-cong")
+	dir := filepath.Dir(exe)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return "", err
 	}

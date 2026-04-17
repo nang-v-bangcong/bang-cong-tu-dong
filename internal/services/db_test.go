@@ -9,9 +9,7 @@ import (
 // TestRestoreDB_HappyPath exercises the full backup → restore cycle.
 func TestRestoreDB_HappyPath(t *testing.T) {
 	tmpDir := t.TempDir()
-	t.Setenv("APPDATA", tmpDir) // windows
-	t.Setenv("XDG_CONFIG_HOME", tmpDir) // linux
-	t.Setenv("HOME", tmpDir)            // mac fallback
+	t.Setenv("BANG_CONG_DATA_DIR", tmpDir)
 
 	// Open real DB under the temp AppData.
 	if _, err := InitDB(); err != nil {
@@ -74,9 +72,7 @@ func TestRestoreDB_HappyPath(t *testing.T) {
 // never leaves the app with a nil or closed db.
 func TestRestoreDB_BadSource_KeepsOriginal(t *testing.T) {
 	tmpDir := t.TempDir()
-	t.Setenv("APPDATA", tmpDir)
-	t.Setenv("XDG_CONFIG_HOME", tmpDir)
-	t.Setenv("HOME", tmpDir)
+	t.Setenv("BANG_CONG_DATA_DIR", tmpDir)
 
 	if _, err := InitDB(); err != nil {
 		t.Fatalf("init: %v", err)

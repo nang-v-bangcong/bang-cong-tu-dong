@@ -3,6 +3,7 @@ package services
 import (
 	"bang-cong/internal/models"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/jung-kurt/gofpdf"
@@ -18,50 +19,66 @@ type PDFData struct {
 	WorksiteWages map[int64]int64
 }
 
+// pdfFontFamily returns the family name to use after registering the UTF-8
+// capable font; falls back to Arial Latin-1 when the system font isn't
+// readable (keeps the feature alive on environments without the TTF).
+func pdfFontFamily(pdf *gofpdf.Fpdf) string {
+	const family = "arial-utf8"
+	reg, regErr := os.ReadFile(`C:\Windows\Fonts\arial.ttf`)
+	bold, boldErr := os.ReadFile(`C:\Windows\Fonts\arialbd.ttf`)
+	if regErr != nil || boldErr != nil {
+		return "Arial"
+	}
+	pdf.AddUTF8FontFromBytes(family, "", reg)
+	pdf.AddUTF8FontFromBytes(family, "B", bold)
+	return family
+}
+
 func GeneratePDF(data PDFData, filePath string) error {
 	pdf := gofpdf.New("P", "mm", "A4", "")
 	pdf.SetAutoPageBreak(true, 15)
 	pdf.AddPage()
+	fam := pdfFontFamily(pdf)
 
 	// Title
-	pdf.SetFont("Arial", "B", 16)
+	pdf.SetFont(fam, "B", 16)
 	pdf.CellFormat(0, 10, data.Title, "", 1, "C", false, 0, "")
 	pdf.Ln(2)
 
 	// Info
-	pdf.SetFont("Arial", "", 10)
-	pdf.CellFormat(0, 6, fmt.Sprintf("Name: %s", data.UserName), "", 1, "L", false, 0, "")
-	pdf.CellFormat(0, 6, fmt.Sprintf("Period: %s", data.YearMonth), "", 1, "L", false, 0, "")
+	pdf.SetFont(fam, "", 10)
+	pdf.CellFormat(0, 6, fmt.Sprintf("Họ tên: %s", data.UserName), "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 6, fmt.Sprintf("Tháng: %s", data.YearMonth), "", 1, "L", false, 0, "")
 	pdf.Ln(4)
 
 	// Summary
-	pdf.SetFont("Arial", "B", 10)
+	pdf.SetFont(fam, "B", 10)
 	pdf.SetFillColor(230, 240, 255)
-	pdf.CellFormat(38, 7, "Days worked", "1", 0, "C", true, 0, "")
-	pdf.CellFormat(38, 7, "Total coeff", "1", 0, "C", true, 0, "")
-	pdf.CellFormat(38, 7, "Gross salary", "1", 0, "C", true, 0, "")
-	pdf.CellFormat(38, 7, "Advances", "1", 0, "C", true, 0, "")
-	pdf.CellFormat(38, 7, "Net salary", "1", 1, "C", true, 0, "")
+	pdf.CellFormat(38, 7, "Số ngày", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(38, 7, "Tổng công", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(38, 7, "Tổng lương", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(38, 7, "Tạm ứng", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(38, 7, "Còn lại", "1", 1, "C", true, 0, "")
 
-	pdf.SetFont("Arial", "", 10)
+	pdf.SetFont(fam, "", 10)
 	pdf.CellFormat(38, 7, fmt.Sprintf("%d", data.Summary.TotalDays), "1", 0, "C", false, 0, "")
 	pdf.CellFormat(38, 7, fmt.Sprintf("%.1f", data.Summary.TotalCoefficient), "1", 0, "C", false, 0, "")
-	pdf.CellFormat(38, 7, formatNumber(int64(data.Summary.TotalSalary))+" Won", "1", 0, "C", false, 0, "")
-	pdf.CellFormat(38, 7, formatNumber(data.Summary.TotalAdvances)+" Won", "1", 0, "C", false, 0, "")
-	pdf.CellFormat(38, 7, formatNumber(int64(data.Summary.NetSalary))+" Won", "1", 1, "C", false, 0, "")
+	pdf.CellFormat(38, 7, formatNumber(int64(data.Summary.TotalSalary))+" ₩", "1", 0, "C", false, 0, "")
+	pdf.CellFormat(38, 7, formatNumber(data.Summary.TotalAdvances)+" ₩", "1", 0, "C", false, 0, "")
+	pdf.CellFormat(38, 7, formatNumber(int64(data.Summary.NetSalary))+" ₩", "1", 1, "C", false, 0, "")
 	pdf.Ln(4)
 
 	// Table header
-	pdf.SetFont("Arial", "B", 9)
+	pdf.SetFont(fam, "B", 9)
 	pdf.SetFillColor(240, 240, 240)
-	pdf.CellFormat(22, 7, "Date", "1", 0, "C", true, 0, "")
-	pdf.CellFormat(18, 7, "Coeff", "1", 0, "C", true, 0, "")
-	pdf.CellFormat(55, 7, "Worksite", "1", 0, "C", true, 0, "")
-	pdf.CellFormat(55, 7, "Note", "1", 0, "C", true, 0, "")
-	pdf.CellFormat(40, 7, "Salary (Won)", "1", 1, "C", true, 0, "")
+	pdf.CellFormat(22, 7, "Ngày", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(18, 7, "Công", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(55, 7, "Công trường", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(55, 7, "Ghi chú", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(40, 7, "Lương (₩)", "1", 1, "C", true, 0, "")
 
 	// Table body
-	pdf.SetFont("Arial", "", 9)
+	pdf.SetFont(fam, "", 9)
 	for _, r := range data.Records {
 		wsName := ""
 		if r.WorksiteID != nil {

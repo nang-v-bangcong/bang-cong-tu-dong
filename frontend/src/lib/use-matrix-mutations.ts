@@ -61,7 +61,16 @@ export function useMatrixMutations({ yearMonth, matrix, reload }: Opts) {
   const onCellSave = useCallback(async (userId: number, day: number, coef: number, wsID: number | null) => {
     try {
       await record([{ userId, day }], async () => {
-        await UpsertAttendance(userId, dateOf(ym, day), coef, wsID, '')
+        const existing = matrixRef.current?.rows.find((r) => r.userId === userId)?.cells?.[day]
+        if (coef <= 0) {
+          if (existing?.attendanceId) {
+            await BulkDeleteAttendance([{ userId, date: dateOf(ym, day) } as models.CellRef])
+          }
+          return
+        }
+        // Preserve existing note so single-cell coef edits don't wipe notes set via paste.
+        const note = existing?.attendanceId ? (existing.note ?? '') : ''
+        await UpsertAttendance(userId, dateOf(ym, day), coef, wsID, note)
       })
     } catch { toast.error('Lỗi lưu ô') }
   }, [ym, record])
@@ -93,15 +102,29 @@ export function useMatrixMutations({ yearMonth, matrix, reload }: Opts) {
     } catch { toast.error('Lỗi xóa') }
   }, [record, toRefs])
 
-  const onFillRange = useCallback(async (cells: BulkCells, coef: number) => {
+  const onFillRange = useCallback(async (cells: BulkCells, coef: number, wsID: number | null) => {
     if (cells.length === 0) return
     try {
       await record(cells, async () => {
-        await BulkUpsertCell(toRefs(cells), coef, null)
+        // Fill cả coef + worksite từ ô nguồn; giữ nguyên note của target.
+        const current = matrixRef.current
+        const byUser = new Map<number, models.MatrixRow>()
+        if (current) for (const r of current.rows) byUser.set(r.userId, r)
+        const payload: services.CellUpsert[] = cells.map((c) => {
+          const existing = byUser.get(c.userId)?.cells?.[c.day]
+          return {
+            userId: c.userId,
+            date: dateOf(ym, c.day),
+            coefficient: coef,
+            worksiteId: wsID ?? undefined,
+            note: existing?.attendanceId ? (existing.note ?? '') : '',
+          }
+        })
+        await BulkUpsertCells(payload)
       })
       toast.success(`Đã điền ${cells.length} ô`)
     } catch { toast.error('Lỗi điền dải') }
-  }, [record, toRefs])
+  }, [ym, record])
 
   const onPasteGrid = useCallback(async (items: Array<{ userId: number; day: number; coef: number }>) => {
     if (items.length === 0) return

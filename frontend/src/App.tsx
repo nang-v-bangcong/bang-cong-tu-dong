@@ -23,20 +23,23 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: string |
 }
 
 function App() {
-  const { tab, darkMode, dirty, setDirty } = useAppStore()
+  const { tab, darkMode, dirty } = useAppStore()
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode)
   }, [darkMode])
 
   const handleSave = useCallback(() => {
-    // Blur active element to trigger onBlur save handlers
+    // Blur active element to trigger onBlur save handlers.
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur()
     }
-    // Wait for blur handlers to complete before clearing dirty
-    setTimeout(() => { setDirty(false); toast.success('Đã lưu!') }, 100)
-  }, [setDirty])
+    // Handlers clear `dirty` themselves on success — verify after async saves settle.
+    setTimeout(() => {
+      if (useAppStore.getState().dirty) toast.warning('Một số thay đổi chưa lưu')
+      else toast.success('Đã lưu!')
+    }, 300)
+  }, [])
 
   useEffect(() => {
     const onBeforeUnload = (e: BeforeUnloadEvent) => {

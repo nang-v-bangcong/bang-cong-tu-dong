@@ -31,7 +31,7 @@ interface Props {
   onCopyDay: (day: number) => void
   onCopyPrev: (day: number) => void
   onPasteGrid: (items: Array<{ userId: number; day: number; coef: number }>) => void
-  onFillRange: (cells: BulkCells, coef: number) => void
+  onFillRange: (cells: BulkCells, coef: number, wsId: number | null) => void
   onDayNoteSave: (day: number, note: string) => void
 }
 
@@ -72,7 +72,7 @@ export function MatrixTable({
 
   const dragFill = useDragFill({
     rows, daysInMonth,
-    onCommit: (src, cells) => onFillRange(cells, src.coef),
+    onCommit: (src, cells) => onFillRange(cells, src.coef, src.wsID),
   })
 
   const grandTotalCoef = rows.reduce((s, r) => s + r.totalCoef, 0)

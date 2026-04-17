@@ -9,7 +9,8 @@ import (
 )
 
 type App struct {
-	ctx context.Context
+	ctx         context.Context
+	quitConfirm bool
 }
 
 func NewApp() *App {
@@ -32,13 +33,18 @@ func (a *App) shutdown(ctx context.Context) {
 }
 
 func (a *App) beforeClose(ctx context.Context) (prevent bool) {
-	// Luôn chặn và để frontend hiển thị dialog 3 lựa chọn (Lưu/Không lưu/Huỷ).
+	// User đã xác nhận thoát qua dialog — cho phép đóng thật.
+	if a.quitConfirm {
+		return false
+	}
+	// Chặn lần đầu, để frontend mở dialog xác nhận.
 	runtime.EventsEmit(ctx, "app:quit-request")
 	return true
 }
 
-// Quit — frontend gọi sau khi người dùng chọn "Lưu" hoặc "Không lưu".
+// Quit — frontend gọi sau khi người dùng xác nhận trong dialog.
 func (a *App) Quit() {
+	a.quitConfirm = true
 	runtime.Quit(a.ctx)
 }
 

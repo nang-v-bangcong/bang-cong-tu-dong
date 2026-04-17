@@ -28,18 +28,23 @@ func GetMonthAdvances(userID int64, yearMonth string) ([]models.Advance, error) 
 	return items, rows.Err()
 }
 
-func validateAdvanceInput(date string, amount int64) error {
+const advanceNoteMaxLen = 500
+
+func validateAdvanceInput(date string, amount int64, note string) error {
 	if err := ValidateDate(date); err != nil {
 		return err
 	}
 	if amount <= 0 {
 		return fmt.Errorf("amount must be positive, got %d", amount)
 	}
+	if len([]rune(note)) > advanceNoteMaxLen {
+		return fmt.Errorf("ghi chú quá dài (>%d ký tự)", advanceNoteMaxLen)
+	}
 	return nil
 }
 
 func CreateAdvance(userID int64, date string, amount int64, note string) (models.Advance, error) {
-	if err := validateAdvanceInput(date, amount); err != nil {
+	if err := validateAdvanceInput(date, amount, note); err != nil {
 		return models.Advance{}, err
 	}
 	res, err := db.Exec(
@@ -55,7 +60,7 @@ func CreateAdvance(userID int64, date string, amount int64, note string) (models
 }
 
 func UpdateAdvance(id int64, date string, amount int64, note string) error {
-	if err := validateAdvanceInput(date, amount); err != nil {
+	if err := validateAdvanceInput(date, amount, note); err != nil {
 		return err
 	}
 	_, err := db.Exec(

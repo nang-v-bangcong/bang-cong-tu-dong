@@ -51,11 +51,12 @@ export function AttendanceRow({ date, data, worksites, isToday, onSave, onDelete
   const handleWsChange = (val: string) => {
     const newWsId = val ? Number(val) : null
     setWsId(newWsId)
-    dirty.current = true
     const c = coeff > 0 ? coeff : 1
     setCoeff(c)
+    setGlobalDirty(true)
     onSave(date, c, newWsId, note)
     dirty.current = false
+    setGlobalDirty(false)
   }
 
   const rowBg = isToday

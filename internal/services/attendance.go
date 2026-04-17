@@ -33,6 +33,8 @@ func GetMonthAttendance(userID int64, yearMonth string) ([]models.Attendance, er
 	return items, rows.Err()
 }
 
+const attendanceNoteMaxLen = 500
+
 func UpsertAttendance(userID int64, date string, coefficient float64, worksiteID *int64, note string) (models.Attendance, error) {
 	if err := ValidateDate(date); err != nil {
 		return models.Attendance{}, err
@@ -40,19 +42,25 @@ func UpsertAttendance(userID int64, date string, coefficient float64, worksiteID
 	if coefficient <= 0 || coefficient > 3.0 {
 		return models.Attendance{}, fmt.Errorf("coefficient out of range: %.1f", coefficient)
 	}
-	res, err := db.Exec(`
+	if len([]rune(note)) > attendanceNoteMaxLen {
+		return models.Attendance{}, fmt.Errorf("ghi chú quá dài (>%d ký tự)", attendanceNoteMaxLen)
+	}
+	if _, err := db.Exec(`
 		INSERT INTO attendance (user_id, date, coefficient, worksite_id, note)
 		VALUES (?, ?, ?, ?, ?)
 		ON CONFLICT(user_id, date) DO UPDATE SET
 			coefficient = excluded.coefficient,
 			worksite_id = excluded.worksite_id,
 			note = excluded.note
-	`, userID, date, coefficient, worksiteID, note)
-	if err != nil {
+	`, userID, date, coefficient, worksiteID, note); err != nil {
 		return models.Attendance{}, err
 	}
-	id, _ := res.LastInsertId()
-	WriteAudit("update", "attendance", userID, fmt.Sprintf("Chấm công %s: hệ số %.1f", date, coefficient))
+	// Fetch id separately — LastInsertId isn't reliable for ON CONFLICT updates.
+	var id int64
+	if err := db.QueryRow(`SELECT id FROM attendance WHERE user_id = ? AND date = ?`, userID, date).Scan(&id); err != nil {
+		return models.Attendance{}, err
+	}
+	WriteAudit("update", "attendance", id, fmt.Sprintf("Chấm công %s: hệ số %.1f", date, coefficient))
 	return models.Attendance{
 		ID: id, UserID: userID, Date: date,
 		Coefficient: coefficient, WorksiteID: worksiteID, Note: note,
