@@ -54,10 +54,14 @@ export function useMatrixMutations({ yearMonth, matrix, reload }: Opts) {
     }), ts: Date.now() })
   }, [ym, reload, push])
 
+  const toRefs = useCallback((cells: BulkCells): models.CellRef[] =>
+    cells.map((c) => ({ userId: c.userId, date: dateOf(ym, c.day) } as models.CellRef)),
+  [ym])
+
   const onCellSave = useCallback(async (userId: number, day: number, coef: number, wsID: number | null) => {
     try {
       await record([{ userId, day }], async () => {
-        await UpsertAttendance(userId, dateOf(ym, day), coef, wsID as any, '')
+        await UpsertAttendance(userId, dateOf(ym, day), coef, wsID, '')
       })
     } catch { toast.error('Lỗi lưu ô') }
   }, [ym, record])
@@ -65,52 +69,52 @@ export function useMatrixMutations({ yearMonth, matrix, reload }: Opts) {
   const onBulkAssign = useCallback(async (cells: BulkCells, wsID: number | null) => {
     try {
       await record(cells, async () => {
-        await BulkUpsertWorksite(cells.map((c) => ({ userId: c.userId, date: dateOf(ym, c.day) })) as any, wsID as any)
+        await BulkUpsertWorksite(toRefs(cells), wsID)
       })
       toast.success(`Đã gán ${cells.length} ô`)
     } catch { toast.error('Lỗi gán công trường') }
-  }, [ym, record])
+  }, [record, toRefs])
 
   const onBulkCoef = useCallback(async (cells: BulkCells, coef: number) => {
     try {
       await record(cells, async () => {
-        await BulkUpsertCell(cells.map((c) => ({ userId: c.userId, date: dateOf(ym, c.day) })) as any, coef as any, null as any)
+        await BulkUpsertCell(toRefs(cells), coef, null)
       })
       toast.success(`Đã đặt hệ số ${coef} cho ${cells.length} ô`)
     } catch { toast.error('Lỗi cập nhật hệ số') }
-  }, [ym, record])
+  }, [record, toRefs])
 
   const onBulkDelete = useCallback(async (cells: BulkCells) => {
     try {
       await record(cells, async () => {
-        await BulkDeleteAttendance(cells.map((c) => ({ userId: c.userId, date: dateOf(ym, c.day) })) as any)
+        await BulkDeleteAttendance(toRefs(cells))
       })
       toast.success(`Đã xóa ${cells.length} ô`)
     } catch { toast.error('Lỗi xóa') }
-  }, [ym, record])
+  }, [record, toRefs])
 
   const onFillRange = useCallback(async (cells: BulkCells, coef: number) => {
     if (cells.length === 0) return
     try {
       await record(cells, async () => {
-        await BulkUpsertCell(cells.map((c) => ({ userId: c.userId, date: dateOf(ym, c.day) })) as any, coef as any, null as any)
+        await BulkUpsertCell(toRefs(cells), coef, null)
       })
       toast.success(`Đã điền ${cells.length} ô`)
     } catch { toast.error('Lỗi điền dải') }
-  }, [ym, record])
+  }, [record, toRefs])
 
   const onPasteGrid = useCallback(async (items: Array<{ userId: number; day: number; coef: number }>) => {
     if (items.length === 0) return
     try {
       const keys: BulkCells = items.map((i) => ({ userId: i.userId, day: i.day }))
       await record(keys, async () => {
-        const groups = new Map<number, Array<{ userId: number; date: string }>>()
+        const groups = new Map<number, models.CellRef[]>()
         for (const it of items) {
           const arr = groups.get(it.coef) ?? []
-          arr.push({ userId: it.userId, date: dateOf(ym, it.day) })
+          arr.push({ userId: it.userId, date: dateOf(ym, it.day) } as models.CellRef)
           groups.set(it.coef, arr)
         }
-        for (const [coef, refs] of groups) await BulkUpsertCell(refs as any, coef as any, null as any)
+        for (const [coef, refs] of groups) await BulkUpsertCell(refs, coef, null)
       })
     } catch { toast.error('Lỗi dán dữ liệu') }
   }, [ym, record])
@@ -120,7 +124,7 @@ export function useMatrixMutations({ yearMonth, matrix, reload }: Opts) {
     const keys: BulkCells = current ? current.rows.map((r) => ({ userId: r.userId, day })) : []
     try {
       await recordFromKeys(keys, async () => {
-        const n = await FillDayForAllUsers(ym, day, coef, wsID as any, false)
+        const n = await FillDayForAllUsers(ym, day, coef, wsID, false)
         toast.success(n > 0 ? `Đã chấm ${n} người ngày ${day}` : `Ngày ${day} đã đủ`)
       })
     } catch { toast.error('Lỗi chấm công theo ngày') }
