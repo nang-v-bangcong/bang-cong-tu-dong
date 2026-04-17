@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Building2, Plus, Trash2, Pencil, X, Check } from 'lucide-react'
 import { type Worksite, mapWorksites, formatWon } from '../lib/utils'
+import { useAppStore } from '../stores/app-store'
 import { GetWorksites, CreateWorksite, UpdateWorksite, DeleteWorksite } from '../../wailsjs/go/main/App'
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function WorksiteManager({ open, onClose }: Props) {
+  const triggerRefresh = useAppStore((s) => s.triggerRefresh)
   const [sites, setSites] = useState<Worksite[]>([])
   const [newName, setNewName] = useState('')
   const [newWage, setNewWage] = useState('')
@@ -33,7 +35,7 @@ export function WorksiteManager({ open, onClose }: Props) {
     if (!newName.trim() || !newWage) return
     try {
       await CreateWorksite(newName.trim(), Number(newWage))
-      setNewName(''); setNewWage(''); load()
+      setNewName(''); setNewWage(''); load(); triggerRefresh()
       toast.success('Đã thêm nơi làm việc')
     } catch { toast.error('Lỗi thêm nơi làm việc') }
   }
@@ -42,12 +44,12 @@ export function WorksiteManager({ open, onClose }: Props) {
     if (!editName.trim() || !editWage) return
     try {
       await UpdateWorksite(id, editName.trim(), Number(editWage))
-      setEditId(null); load(); toast.success('Đã cập nhật')
+      setEditId(null); load(); triggerRefresh(); toast.success('Đã cập nhật')
     } catch { toast.error('Lỗi cập nhật') }
   }
 
   const handleDelete = async (id: number) => {
-    try { await DeleteWorksite(id); load(); toast.success('Đã xóa') }
+    try { await DeleteWorksite(id); load(); triggerRefresh(); toast.success('Đã xóa') }
     catch { toast.error('Không thể xóa - đang được sử dụng') }
   }
 

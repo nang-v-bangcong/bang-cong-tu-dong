@@ -87,22 +87,27 @@ func DeleteAttendance(id int64) error {
 
 func GetMonthSummary(userID int64, yearMonth string) (models.MonthSummary, error) {
 	var s models.MonthSummary
-	err := db.QueryRow(`
-		SELECT COUNT(*), COALESCE(SUM(coefficient), 0)
-		FROM attendance
-		WHERE user_id = ? AND date LIKE ?
-	`, userID, yearMonth+"%").Scan(&s.TotalDays, &s.TotalCoefficient)
-	if err != nil {
-		return s, err
-	}
 
-	// Salary = SUM(coefficient * worksite.daily_wage) for records with worksite
-	err = db.QueryRow(`
-		SELECT COALESCE(SUM(a.coefficient * w.daily_wage), 0)
+	// Paid: attendance với worksite có daily_wage > 0.
+	// Unpaid: phần còn lại (không có worksite hoặc worksite daily_wage = 0).
+	err := db.QueryRow(`
+		SELECT
+			COUNT(*),
+			COALESCE(SUM(a.coefficient), 0),
+			COALESCE(SUM(CASE WHEN COALESCE(w.daily_wage, 0) > 0 THEN 1 ELSE 0 END), 0),
+			COALESCE(SUM(CASE WHEN COALESCE(w.daily_wage, 0) > 0 THEN a.coefficient ELSE 0 END), 0),
+			COALESCE(SUM(CASE WHEN COALESCE(w.daily_wage, 0) > 0 THEN 0 ELSE 1 END), 0),
+			COALESCE(SUM(CASE WHEN COALESCE(w.daily_wage, 0) > 0 THEN 0 ELSE a.coefficient END), 0),
+			COALESCE(SUM(a.coefficient * COALESCE(w.daily_wage, 0)), 0)
 		FROM attendance a
-		INNER JOIN worksites w ON a.worksite_id = w.id
+		LEFT JOIN worksites w ON a.worksite_id = w.id
 		WHERE a.user_id = ? AND a.date LIKE ?
-	`, userID, yearMonth+"%").Scan(&s.TotalSalary)
+	`, userID, yearMonth+"%").Scan(
+		&s.TotalDays, &s.TotalCoefficient,
+		&s.PaidDays, &s.PaidCoefficient,
+		&s.UnpaidDays, &s.UnpaidCoefficient,
+		&s.TotalSalary,
+	)
 	if err != nil {
 		return s, err
 	}

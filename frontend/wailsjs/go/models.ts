@@ -72,12 +72,108 @@ export namespace models {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	export class CellRef {
+	    userId: number;
+	    date: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CellRef(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.userId = source["userId"];
+	        this.date = source["date"];
+	    }
+	}
+	export class DayNote {
+	    yearMonth: string;
+	    day: number;
+	    note: string;
+	    updatedAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DayNote(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.yearMonth = source["yearMonth"];
+	        this.day = source["day"];
+	        this.note = source["note"];
+	        this.updatedAt = source["updatedAt"];
+	    }
+	}
+	export class MatrixCell {
+	    attendanceId: number;
+	    coefficient: number;
+	    worksiteId?: number;
+	    worksiteName: string;
+	    note: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new MatrixCell(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.attendanceId = source["attendanceId"];
+	        this.coefficient = source["coefficient"];
+	        this.worksiteId = source["worksiteId"];
+	        this.worksiteName = source["worksiteName"];
+	        this.note = source["note"];
+	    }
+	}
+	export class MatrixRow {
+	    userId: number;
+	    userName: string;
+	    cells: Record<number, MatrixCell>;
+	    totalDays: number;
+	    totalCoef: number;
+	    salary: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new MatrixRow(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.userId = source["userId"];
+	        this.userName = source["userName"];
+	        this.cells = this.convertValues(source["cells"], MatrixCell, true);
+	        this.totalDays = source["totalDays"];
+	        this.totalCoef = source["totalCoef"];
+	        this.salary = source["salary"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class MonthSummary {
 	    totalDays: number;
 	    totalCoefficient: number;
 	    totalSalary: number;
 	    totalAdvances: number;
 	    netSalary: number;
+	    paidDays: number;
+	    paidCoefficient: number;
+	    unpaidDays: number;
+	    unpaidCoefficient: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new MonthSummary(source);
@@ -90,7 +186,49 @@ export namespace models {
 	        this.totalSalary = source["totalSalary"];
 	        this.totalAdvances = source["totalAdvances"];
 	        this.netSalary = source["netSalary"];
+	        this.paidDays = source["paidDays"];
+	        this.paidCoefficient = source["paidCoefficient"];
+	        this.unpaidDays = source["unpaidDays"];
+	        this.unpaidCoefficient = source["unpaidCoefficient"];
 	    }
+	}
+	export class TeamMatrix {
+	    yearMonth: string;
+	    daysInMonth: number;
+	    rows: MatrixRow[];
+	    dayNotes: Record<number, string>;
+	    dayTotals: Record<number, number>;
+	
+	    static createFrom(source: any = {}) {
+	        return new TeamMatrix(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.yearMonth = source["yearMonth"];
+	        this.daysInMonth = source["daysInMonth"];
+	        this.rows = this.convertValues(source["rows"], MatrixRow);
+	        this.dayNotes = source["dayNotes"];
+	        this.dayTotals = source["dayTotals"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class User {
 	    id: number;

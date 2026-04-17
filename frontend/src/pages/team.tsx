@@ -13,6 +13,7 @@ import { QuickActions } from '../components/quick-actions'
 import { TeamSummary } from '../components/team-summary'
 import { ResizableSplit } from '../components/resizable-split'
 import { BatchAttendance } from '../components/batch-attendance'
+import { ZoomableArea } from '../components/zoomable-area'
 import {
   GetTeamUsers, CreateTeamUser, DeleteTeamUser, UpdateUser,
   GetMonthAttendance, UpsertAttendance, DeleteAttendance,
@@ -20,10 +21,10 @@ import {
   GetWorksites, GetToday, ExportPDF, GetWorksiteSummary,
 } from '../../wailsjs/go/main/App'
 
-interface PersonSummary extends Summary { userId: number; name: string; dailyWage: number }
+interface PersonSummary extends Summary { userId: number; name: string }
 
 export function TeamPage() {
-  const { yearMonth } = useAppStore()
+  const { yearMonth, refreshTrigger } = useAppStore()
   const [users, setUsers] = useState<User[]>([])
   const [selected, setSelected] = useState<User | null>(null)
   const [showAdd, setShowAdd] = useState(false)
@@ -32,7 +33,10 @@ export function TeamPage() {
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
   const [loading, setLoading] = useState(false)
   const [records, setRecords] = useState<Attendance[]>([])
-  const [summary, setSummary] = useState<Summary>({ totalDays: 0, totalCoefficient: 0, totalSalary: 0, totalAdvances: 0, netSalary: 0 })
+  const [summary, setSummary] = useState<Summary>({
+    totalDays: 0, totalCoefficient: 0, totalSalary: 0, totalAdvances: 0, netSalary: 0,
+    paidDays: 0, paidCoefficient: 0, unpaidDays: 0, unpaidCoefficient: 0,
+  })
   const [teamData, setTeamData] = useState<PersonSummary[]>([])
   const [worksites, setWorksites] = useState<Worksite[]>([])
   const [wsBreakdown, setWsBreakdown] = useState<WsSummary[]>([])
@@ -64,7 +68,7 @@ export function TeamPage() {
       const summaries = await Promise.all(
         us.map(async (u) => {
           const s = await GetMonthSummary(u.id, yearMonth) as Summary
-          return { ...s, userId: u.id, name: u.name, dailyWage: u.dailyWage }
+          return { ...s, userId: u.id, name: u.name }
         })
       )
       setTeamData(summaries)
@@ -76,16 +80,16 @@ export function TeamPage() {
       loadTeamSummary(us)
       if (us.length > 0 && !selected) setSelected(us[0])
     })
-  }, [yearMonth, loadUsers, loadTeamSummary])
+  }, [yearMonth, refreshTrigger, loadUsers, loadTeamSummary])
 
-  useEffect(() => { if (selected) loadPersonData(selected) }, [selected, yearMonth, loadPersonData])
+  useEffect(() => { if (selected) loadPersonData(selected) }, [selected, yearMonth, refreshTrigger, loadPersonData])
 
   const reload = async () => { const us = await loadUsers(); loadTeamSummary(us); return us }
 
-  const handleAddPerson = async (name: string, dailyWage: number) => {
+  const handleAddPerson = async (name: string) => {
     try {
-      const u = await CreateTeamUser(name, dailyWage) as any
-      await reload(); setSelected({ id: u.id, name: u.name, dailyWage: u.dailyWage })
+      const u = await CreateTeamUser(name) as any
+      await reload(); setSelected({ id: u.id, name: u.name })
       toast.success(`Đã thêm ${name}`)
     } catch { toast.error('Lỗi thêm người') }
   }
@@ -100,11 +104,11 @@ export function TeamPage() {
     } catch { toast.error('Lỗi xóa') }
   }
 
-  const handleEditUser = async (name: string, dailyWage: number) => {
+  const handleEditUser = async (name: string) => {
     if (!selected) return
     try {
-      await UpdateUser(selected.id, name, dailyWage)
-      const updated = { ...selected, name, dailyWage }
+      await UpdateUser(selected.id, name)
+      const updated = { ...selected, name }
       setSelected(updated); setShowEdit(false); await reload(); loadPersonData(updated)
       toast.success('Đã cập nhật')
     } catch { toast.error('Lỗi cập nhật') }
@@ -176,7 +180,11 @@ export function TeamPage() {
             {selected ? (
               loading
                 ? <div className="flex-1 flex items-center justify-center text-sm" style={{ color: 'var(--text-muted)' }}>Đang tải...</div>
-                : <AttendanceTable yearMonth={yearMonth} records={records} worksites={worksites} today={today} onSave={handleSave} onDelete={handleDelete} />
+                : (
+                  <ZoomableArea storageKey="zoom-team" className="flex-1">
+                    <AttendanceTable yearMonth={yearMonth} records={records} worksites={worksites} today={today} onSave={handleSave} onDelete={handleDelete} />
+                  </ZoomableArea>
+                )
             ) : <p className="text-center py-8 text-sm" style={{ color: 'var(--text-muted)' }}>Chưa có người nào. Bấm "Thêm" để bắt đầu.</p>}
           </div>
         }
@@ -200,7 +208,7 @@ export function TeamPage() {
         }
       />
       <AddPersonDialog open={showAdd} onClose={() => setShowAdd(false)} onSave={handleAddPerson} />
-      {selected && <EditUserDialog open={showEdit} name={selected.name} dailyWage={selected.dailyWage} onSave={handleEditUser} onClose={() => setShowEdit(false)} />}
+      {selected && <EditUserDialog open={showEdit} name={selected.name} onSave={handleEditUser} onClose={() => setShowEdit(false)} />}
       <ConfirmDialog open={!!deleteTarget} title="Xóa người" message={`Bạn có chắc muốn xóa "${deleteTarget?.name}"? Dữ liệu chấm công sẽ bị mất.`} onConfirm={handleConfirmDelete} onCancel={() => setDeleteTarget(null)} />
       <BatchAttendance open={showBatch} users={users} onClose={() => setShowBatch(false)} onDone={() => { reload(); if (selected) loadPersonData(selected) }} />
     </>

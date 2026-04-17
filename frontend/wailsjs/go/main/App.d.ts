@@ -4,11 +4,13 @@ import {models} from '../models';
 
 export function BackupDB():Promise<string>;
 
+export function BulkUpsertWorksite(arg1:Array<models.CellRef>,arg2:any):Promise<void>;
+
 export function CopyPreviousDay(arg1:number,arg2:string):Promise<models.Attendance>;
 
 export function CreateAdvance(arg1:number,arg2:string,arg3:number,arg4:string):Promise<models.Advance>;
 
-export function CreateTeamUser(arg1:string,arg2:number):Promise<models.User>;
+export function CreateTeamUser(arg1:string):Promise<models.User>;
 
 export function CreateWorksite(arg1:string,arg2:number):Promise<models.Worksite>;
 
@@ -20,11 +22,13 @@ export function DeleteTeamUser(arg1:number):Promise<void>;
 
 export function DeleteWorksite(arg1:number):Promise<void>;
 
-export function EnsureSelfUser(arg1:string,arg2:number):Promise<models.User>;
+export function EnsureSelfUser(arg1:string):Promise<models.User>;
 
 export function ExportPDF(arg1:number,arg2:string,arg3:string):Promise<string>;
 
 export function GetAuditLog(arg1:number,arg2:number):Promise<Array<models.AuditLog>>;
+
+export function GetDayNotes(arg1:string):Promise<Array<models.DayNote>>;
 
 export function GetMonthAdvances(arg1:number,arg2:string):Promise<Array<models.Advance>>;
 
@@ -34,6 +38,8 @@ export function GetMonthSummary(arg1:number,arg2:string):Promise<models.MonthSum
 
 export function GetSelfUser():Promise<models.User>;
 
+export function GetTeamMonthMatrix(arg1:string):Promise<models.TeamMatrix>;
+
 export function GetTeamUsers():Promise<Array<models.User>>;
 
 export function GetToday():Promise<string>;
@@ -42,12 +48,16 @@ export function GetWorksiteSummary(arg1:number,arg2:string):Promise<Array<models
 
 export function GetWorksites():Promise<Array<models.Worksite>>;
 
+export function Quit():Promise<void>;
+
 export function RestoreDB():Promise<void>;
 
 export function UpdateAdvance(arg1:number,arg2:string,arg3:number,arg4:string):Promise<void>;
 
-export function UpdateUser(arg1:number,arg2:string,arg3:number):Promise<void>;
+export function UpdateUser(arg1:number,arg2:string):Promise<void>;
 
 export function UpdateWorksite(arg1:number,arg2:string,arg3:number):Promise<void>;
 
 export function UpsertAttendance(arg1:number,arg2:string,arg3:number,arg4:any,arg5:string):Promise<models.Attendance>;
+
+export function UpsertDayNote(arg1:string,arg2:number,arg3:string):Promise<void>;

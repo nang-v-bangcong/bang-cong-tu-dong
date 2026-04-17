@@ -2,17 +2,16 @@ import { useState } from 'react'
 import { UserCircle } from 'lucide-react'
 
 interface Props {
-  onSave: (name: string, dailyWage: number) => void
+  onSave: (name: string) => void
 }
 
 export function SetupDialog({ onSave }: Props) {
   const [name, setName] = useState('')
-  const [wage, setWage] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim() || !wage) return
-    onSave(name.trim(), Number(wage))
+    if (!name.trim()) return
+    onSave(name.trim())
   }
 
   const inputCls = 'w-full px-3 py-2 text-sm bg-transparent rounded-[var(--radius)]'
@@ -28,19 +27,15 @@ export function SetupDialog({ onSave }: Props) {
           <UserCircle size={28} style={{ color: 'var(--primary)' }} />
           <h2 className="text-lg font-bold">Thiết lập ban đầu</h2>
         </div>
-        <div className="space-y-3">
-          <div>
-            <label className="block text-sm font-medium mb-1">Tên của bạn</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nguyen Van A"
-              className={inputCls} style={{ border: '1px solid var(--border)' }} autoFocus />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Lương ngày (Won)</label>
-            <input type="number" value={wage} onChange={(e) => setWage(e.target.value)} placeholder="200000"
-              className={inputCls} style={{ border: '1px solid var(--border)' }} />
-          </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Tên của bạn</label>
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nguyen Van A"
+            className={inputCls} style={{ border: '1px solid var(--border)' }} autoFocus />
+          <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+            Lương được tính theo từng nơi làm việc. Bạn có thể thêm nơi làm việc sau khi vào app.
+          </p>
         </div>
-        <button type="submit" disabled={!name.trim() || !wage}
+        <button type="submit" disabled={!name.trim()}
           className="mt-5 w-full py-2.5 text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
           style={{ background: 'var(--primary)', borderRadius: 'var(--radius)' }}>
           Bắt đầu

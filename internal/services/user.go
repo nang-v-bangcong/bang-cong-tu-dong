@@ -15,7 +15,7 @@ func GetSelfUser() (models.User, error) {
 	return u, err
 }
 
-func EnsureSelfUser(name string, dailyWage int64) (models.User, error) {
+func EnsureSelfUser(name string) (models.User, error) {
 	u, err := GetSelfUser()
 	if err == nil {
 		return u, nil
@@ -24,24 +24,24 @@ func EnsureSelfUser(name string, dailyWage int64) (models.User, error) {
 		return models.User{}, err
 	}
 	res, err := db.Exec(
-		`INSERT INTO users (name, daily_wage, is_self) VALUES (?, ?, 1)`,
-		name, dailyWage,
+		`INSERT INTO users (name, is_self) VALUES (?, 1)`,
+		name,
 	)
 	if err != nil {
 		return models.User{}, err
 	}
 	id, _ := res.LastInsertId()
 	WriteAudit("create", "user", id, fmt.Sprintf("Thiết lập người dùng: %s", name))
-	return models.User{ID: id, Name: name, DailyWage: dailyWage, IsSelf: true}, nil
+	return models.User{ID: id, Name: name, IsSelf: true}, nil
 }
 
-func UpdateUser(id int64, name string, dailyWage int64) error {
+func UpdateUser(id int64, name string) error {
 	_, err := db.Exec(
-		`UPDATE users SET name = ?, daily_wage = ? WHERE id = ?`,
-		name, dailyWage, id,
+		`UPDATE users SET name = ? WHERE id = ?`,
+		name, id,
 	)
 	if err == nil {
-		WriteAudit("update", "user", id, fmt.Sprintf("Sửa thông tin: %s (%d₩)", name, dailyWage))
+		WriteAudit("update", "user", id, fmt.Sprintf("Đổi tên: %s", name))
 	}
 	return err
 }
@@ -66,17 +66,17 @@ func GetTeamUsers() ([]models.User, error) {
 	return users, rows.Err()
 }
 
-func CreateTeamUser(name string, dailyWage int64) (models.User, error) {
+func CreateTeamUser(name string) (models.User, error) {
 	res, err := db.Exec(
-		`INSERT INTO users (name, daily_wage, is_self) VALUES (?, ?, 0)`,
-		name, dailyWage,
+		`INSERT INTO users (name, is_self) VALUES (?, 0)`,
+		name,
 	)
 	if err != nil {
 		return models.User{}, err
 	}
 	id, _ := res.LastInsertId()
-	WriteAudit("create", "user", id, fmt.Sprintf("Thêm người: %s (%d₩)", name, dailyWage))
-	return models.User{ID: id, Name: name, DailyWage: dailyWage}, nil
+	WriteAudit("create", "user", id, fmt.Sprintf("Thêm người: %s", name))
+	return models.User{ID: id, Name: name}, nil
 }
 
 func DeleteTeamUser(id int64) error {

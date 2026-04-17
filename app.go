@@ -33,17 +33,14 @@ func (a *App) shutdown(ctx context.Context) {
 }
 
 func (a *App) beforeClose(ctx context.Context) (prevent bool) {
-	dialog, err := runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
-		Type:          runtime.QuestionDialog,
-		Title:         "Thoát ứng dụng",
-		Message:       "Bạn có chắc muốn thoát? Hãy đảm bảo đã lưu dữ liệu.",
-		DefaultButton: "No",
-		Buttons:       []string{"Yes", "No"},
-	})
-	if err != nil {
-		return false
-	}
-	return dialog == "No"
+	// Luôn chặn và để frontend hiển thị dialog 3 lựa chọn (Lưu/Không lưu/Huỷ).
+	runtime.EventsEmit(ctx, "app:quit-request")
+	return true
+}
+
+// Quit — frontend gọi sau khi người dùng chọn "Lưu" hoặc "Không lưu".
+func (a *App) Quit() {
+	runtime.Quit(a.ctx)
 }
 
 // --- User ---
@@ -52,20 +49,20 @@ func (a *App) GetSelfUser() (models.User, error) {
 	return services.GetSelfUser()
 }
 
-func (a *App) EnsureSelfUser(name string, dailyWage int64) (models.User, error) {
-	return services.EnsureSelfUser(name, dailyWage)
+func (a *App) EnsureSelfUser(name string) (models.User, error) {
+	return services.EnsureSelfUser(name)
 }
 
-func (a *App) UpdateUser(id int64, name string, dailyWage int64) error {
-	return services.UpdateUser(id, name, dailyWage)
+func (a *App) UpdateUser(id int64, name string) error {
+	return services.UpdateUser(id, name)
 }
 
 func (a *App) GetTeamUsers() ([]models.User, error) {
 	return services.GetTeamUsers()
 }
 
-func (a *App) CreateTeamUser(name string, dailyWage int64) (models.User, error) {
-	return services.CreateTeamUser(name, dailyWage)
+func (a *App) CreateTeamUser(name string) (models.User, error) {
+	return services.CreateTeamUser(name)
 }
 
 func (a *App) DeleteTeamUser(id int64) error {
@@ -118,6 +115,24 @@ func (a *App) CopyPreviousDay(userID int64, targetDate string) (models.Attendanc
 
 func (a *App) GetToday() string {
 	return time.Now().Format("2006-01-02")
+}
+
+// --- Matrix & Day Notes ---
+
+func (a *App) GetTeamMonthMatrix(yearMonth string) (models.TeamMatrix, error) {
+	return services.GetTeamMonthMatrix(yearMonth)
+}
+
+func (a *App) GetDayNotes(yearMonth string) ([]models.DayNote, error) {
+	return services.GetDayNotes(yearMonth)
+}
+
+func (a *App) UpsertDayNote(yearMonth string, day int, note string) error {
+	return services.UpsertDayNote(yearMonth, day, note)
+}
+
+func (a *App) BulkUpsertWorksite(cells []models.CellRef, worksiteID *int64) error {
+	return services.BulkUpsertWorksite(cells, worksiteID)
 }
 
 // --- Advance ---

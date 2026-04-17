@@ -1,9 +1,19 @@
 // --- Shared types ---
 
-export interface User { id: number; name: string; dailyWage: number }
+export interface User { id: number; name: string }
 export interface Worksite { id: number; name: string; dailyWage: number }
 export interface Attendance { id: number; date: string; coefficient: number; worksiteId: number | null; note: string }
-export interface Summary { totalDays: number; totalCoefficient: number; totalSalary: number; totalAdvances: number; netSalary: number }
+export interface Summary {
+  totalDays: number
+  totalCoefficient: number
+  totalSalary: number
+  totalAdvances: number
+  netSalary: number
+  paidDays: number
+  paidCoefficient: number
+  unpaidDays: number
+  unpaidCoefficient: number
+}
 export interface WsSummary { worksiteId: number | null; worksiteName: string; dailyWage: number; totalCoeff: number; totalSalary: number }
 
 // --- Mappers (avoid repeated `as any` casts) ---
@@ -17,7 +27,7 @@ export function mapWorksites(raw: any[]): Worksite[] {
 }
 
 export function mapUsers(raw: any[]): User[] {
-  return (raw || []).map((u) => ({ id: u.id, name: u.name, dailyWage: u.dailyWage }))
+  return (raw || []).map((u) => ({ id: u.id, name: u.name }))
 }
 
 // --- Formatters ---

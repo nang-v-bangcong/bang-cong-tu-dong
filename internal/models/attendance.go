@@ -21,10 +21,44 @@ type WorksiteSummary struct {
 	TotalSalary  float64 `json:"totalSalary"`
 }
 
+type MatrixCell struct {
+	AttendanceID int64   `json:"attendanceId"`
+	Coefficient  float64 `json:"coefficient"`
+	WorksiteID   *int64  `json:"worksiteId"`
+	WorksiteName string  `json:"worksiteName"`
+	Note         string  `json:"note"`
+}
+
+type MatrixRow struct {
+	UserID    int64               `json:"userId"`
+	UserName  string              `json:"userName"`
+	Cells     map[int]MatrixCell  `json:"cells"`
+	TotalDays int                 `json:"totalDays"`
+	TotalCoef float64             `json:"totalCoef"`
+	Salary    float64             `json:"salary"`
+}
+
+type TeamMatrix struct {
+	YearMonth   string          `json:"yearMonth"`
+	DaysInMonth int             `json:"daysInMonth"`
+	Rows        []MatrixRow     `json:"rows"`
+	DayNotes    map[int]string  `json:"dayNotes"`
+	DayTotals   map[int]float64 `json:"dayTotals"`
+}
+
+type CellRef struct {
+	UserID int64  `json:"userId"`
+	Date   string `json:"date"`
+}
+
 type MonthSummary struct {
-	TotalDays        int     `json:"totalDays"`
-	TotalCoefficient float64 `json:"totalCoefficient"`
-	TotalSalary      float64 `json:"totalSalary"`
-	TotalAdvances    int64   `json:"totalAdvances"`
-	NetSalary        float64 `json:"netSalary"`
+	TotalDays         int     `json:"totalDays"`
+	TotalCoefficient  float64 `json:"totalCoefficient"`
+	TotalSalary       float64 `json:"totalSalary"`
+	TotalAdvances     int64   `json:"totalAdvances"`
+	NetSalary         float64 `json:"netSalary"`
+	PaidDays          int     `json:"paidDays"`
+	PaidCoefficient   float64 `json:"paidCoefficient"`
+	UnpaidDays        int     `json:"unpaidDays"`
+	UnpaidCoefficient float64 `json:"unpaidCoefficient"`
 }

@@ -10,6 +10,7 @@ import { AdvancePanel } from '../components/advance-panel'
 import { QuickActions } from '../components/quick-actions'
 import { EditUserDialog } from '../components/edit-user-dialog'
 import { ResizableSplit } from '../components/resizable-split'
+import { ZoomableArea } from '../components/zoomable-area'
 import {
   GetSelfUser, EnsureSelfUser, UpdateUser,
   GetMonthAttendance, UpsertAttendance, DeleteAttendance,
@@ -17,10 +18,13 @@ import {
   GetWorksites, GetToday, ExportPDF, GetWorksiteSummary,
 } from '../../wailsjs/go/main/App'
 
-const EMPTY_SUMMARY: Summary = { totalDays: 0, totalCoefficient: 0, totalSalary: 0, totalAdvances: 0, netSalary: 0 }
+const EMPTY_SUMMARY: Summary = {
+  totalDays: 0, totalCoefficient: 0, totalSalary: 0, totalAdvances: 0, netSalary: 0,
+  paidDays: 0, paidCoefficient: 0, unpaidDays: 0, unpaidCoefficient: 0,
+}
 
 export function PersonalPage() {
-  const { yearMonth } = useAppStore()
+  const { yearMonth, refreshTrigger } = useAppStore()
   const [user, setUser] = useState<User | null>(null)
   const [needSetup, setNeedSetup] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
@@ -51,21 +55,21 @@ export function PersonalPage() {
       .then((u: any) => { setUser(u); return u })
       .then((u: any) => loadData(u))
       .catch(() => { setNeedSetup(true); setLoading(false) })
-  }, [yearMonth, loadData])
+  }, [yearMonth, refreshTrigger, loadData])
 
-  const handleSetup = async (name: string, dailyWage: number) => {
+  const handleSetup = async (name: string) => {
     try {
-      const u = await EnsureSelfUser(name, dailyWage) as any
+      const u = await EnsureSelfUser(name) as any
       setUser(u); setNeedSetup(false); loadData(u)
       toast.success('Thiết lập thành công!')
     } catch { toast.error('Lỗi thiết lập') }
   }
 
-  const handleEditUser = async (name: string, dailyWage: number) => {
+  const handleEditUser = async (name: string) => {
     if (!user) return
     try {
-      await UpdateUser(user.id, name, dailyWage)
-      const updated = { ...user, name, dailyWage }
+      await UpdateUser(user.id, name)
+      const updated = { ...user, name }
       setUser(updated); setShowEdit(false); loadData(updated)
       toast.success('Đã cập nhật thông tin')
     } catch { toast.error('Lỗi cập nhật') }
@@ -109,7 +113,11 @@ export function PersonalPage() {
         left={
           <div className="flex flex-col h-full p-3">
             {loading ? <div className="flex-1 flex items-center justify-center text-sm" style={{ color: 'var(--text-muted)' }}>Đang tải...</div>
-              : <AttendanceTable yearMonth={yearMonth} records={records} worksites={worksites} today={today} onSave={handleSave} onDelete={handleDelete} />
+              : (
+                <ZoomableArea storageKey="zoom-personal" className="flex-1">
+                  <AttendanceTable yearMonth={yearMonth} records={records} worksites={worksites} today={today} onSave={handleSave} onDelete={handleDelete} />
+                </ZoomableArea>
+              )
             }
           </div>
         }
@@ -125,7 +133,7 @@ export function PersonalPage() {
           </div>
         }
       />
-      <EditUserDialog open={showEdit} name={user.name} dailyWage={user.dailyWage} onSave={handleEditUser} onClose={() => setShowEdit(false)} />
+      <EditUserDialog open={showEdit} name={user.name} onSave={handleEditUser} onClose={() => setShowEdit(false)} />
     </>
   )
 }

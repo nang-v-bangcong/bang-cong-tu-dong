@@ -69,8 +69,8 @@ export function AttendanceTable({ yearMonth, records, worksites, today, onSave, 
       style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius)' }}
     >
       <table className="w-full text-left table-fixed">
-        <thead className="text-[10px] uppercase tracking-wide sticky top-0 z-10"
-          style={{ background: 'var(--bg-muted)', color: 'var(--text-muted)' }}>
+        <thead className="text-xs font-bold uppercase tracking-wide sticky top-0 z-10"
+          style={{ background: 'var(--bg-muted)', color: 'var(--text)' }}>
           <tr>
             <TH col="day">N</TH>
             <TH col="dow">T</TH>

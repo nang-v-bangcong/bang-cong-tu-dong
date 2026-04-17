@@ -1,16 +1,18 @@
 import { create } from 'zustand'
 
-type Tab = 'personal' | 'team'
+type Tab = 'personal' | 'team' | 'matrix'
 
 interface AppState {
   tab: Tab
   yearMonth: string
   darkMode: boolean
   dirty: boolean
+  refreshTrigger: number
   setTab: (tab: Tab) => void
   setYearMonth: (ym: string) => void
   toggleDarkMode: () => void
   setDirty: (dirty: boolean) => void
+  triggerRefresh: () => void
 }
 
 const now = new Date()
@@ -21,6 +23,7 @@ export const useAppStore = create<AppState>((set) => ({
   yearMonth: defaultYearMonth,
   darkMode: localStorage.getItem('darkMode') === 'true',
   dirty: false,
+  refreshTrigger: 0,
   setTab: (tab) => set({ tab }),
   setYearMonth: (yearMonth) => set({ yearMonth }),
   toggleDarkMode: () =>
@@ -30,4 +33,5 @@ export const useAppStore = create<AppState>((set) => ({
       return { darkMode: next }
     }),
   setDirty: (dirty) => set({ dirty }),
+  triggerRefresh: () => set((s) => ({ refreshTrigger: s.refreshTrigger + 1 })),
 }))

@@ -5,6 +5,8 @@ import { useAppStore } from './stores/app-store'
 import { Header } from './components/header'
 import { PersonalPage } from './pages/personal'
 import { TeamPage } from './pages/team'
+import { MatrixPage } from './pages/matrix'
+import { ExitDialog } from './components/exit-dialog'
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: string | null }> {
   state = { error: null as string | null }
@@ -46,12 +48,29 @@ function App() {
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
   }, [])
 
+  useEffect(() => {
+    // Block WebView2's default Ctrl+wheel zoom at the document level.
+    // ZoomableArea stops propagation so its container still receives the event.
+    const globalWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) e.preventDefault()
+    }
+    const blockKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey && ['=', '-', '+', '0'].includes(e.key)) e.preventDefault()
+    }
+    document.addEventListener('wheel', globalWheel, { passive: false })
+    window.addEventListener('keydown', blockKey)
+    return () => {
+      document.removeEventListener('wheel', globalWheel)
+      window.removeEventListener('keydown', blockKey)
+    }
+  }, [])
+
   return (
     <ErrorBoundary>
       <div className="h-screen flex flex-col" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
         <Header />
         <main className="flex-1 overflow-auto">
-          {tab === 'personal' ? <PersonalPage /> : <TeamPage />}
+          {tab === 'personal' ? <PersonalPage /> : tab === 'team' ? <TeamPage /> : <MatrixPage />}
         </main>
         {dirty && (
           <div className="fixed bottom-4 right-4 z-40">
@@ -61,6 +80,7 @@ function App() {
           </div>
         )}
         <Toaster richColors position="bottom-right" />
+        <ExitDialog />
       </div>
     </ErrorBoundary>
   )

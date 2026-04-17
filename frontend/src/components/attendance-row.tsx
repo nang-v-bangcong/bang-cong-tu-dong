@@ -91,7 +91,7 @@ export function AttendanceRow({ date, data, worksites, isToday, onSave, onDelete
         <select
           value={wsId ?? ''}
           onChange={(e) => handleWsChange(e.target.value)}
-          className={`${inputCls} cursor-pointer text-left`}
+          className={`${inputCls} cursor-pointer`}
         >
           <option value="">--</option>
           {worksites.map((w) => (
@@ -105,7 +105,7 @@ export function AttendanceRow({ date, data, worksites, isToday, onSave, onDelete
           onChange={(e) => { setNote(e.target.value); dirty.current = true; setGlobalDirty(true) }}
           onBlur={save}
           onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
-          className={`${inputCls} text-left`}
+          className={inputCls}
         />
       </td>
       <td className="px-0.5 py-0.5 w-[24px]">

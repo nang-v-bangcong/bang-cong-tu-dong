@@ -1,17 +1,26 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { HardHat, Building2, Download, Upload, History } from 'lucide-react'
+import { HardHat, Building2, Download, Upload, History, RefreshCw } from 'lucide-react'
 import { useAppStore } from '../stores/app-store'
 import { ThemeToggle } from './theme-toggle'
 import { MonthPicker } from './month-picker'
 import { WorksiteManager } from './worksite-manager'
 import { AuditLogDialog } from './audit-log'
+import { HelpButton } from './help-button'
 import { BackupDB, RestoreDB } from '../../wailsjs/go/main/App'
 
 export function Header() {
-  const { tab, setTab } = useAppStore()
+  const { tab, setTab, triggerRefresh } = useAppStore()
   const [showWorksites, setShowWorksites] = useState(false)
   const [showAudit, setShowAudit] = useState(false)
+  const [spinning, setSpinning] = useState(false)
+
+  const handleRefresh = () => {
+    triggerRefresh()
+    setSpinning(true)
+    toast.success('Đã tải lại dữ liệu')
+    setTimeout(() => setSpinning(false), 600)
+  }
 
   const handleBackup = async () => {
     try { const p = await BackupDB(); toast.success(`Đã sao lưu: ${p}`) }
@@ -51,6 +60,10 @@ export function Header() {
           style={tab === 'team' ? { background: 'var(--primary)', borderRadius: 'var(--radius-sm)' } : { borderRadius: 'var(--radius-sm)' }}>
           Nhóm
         </button>
+        <button onClick={() => setTab('matrix')} className={tabCls(tab === 'matrix')}
+          style={tab === 'matrix' ? { background: 'var(--primary)', borderRadius: 'var(--radius-sm)' } : { borderRadius: 'var(--radius-sm)' }}>
+          Bảng tổng
+        </button>
       </nav>
 
       <div className="flex-1" />
@@ -58,6 +71,9 @@ export function Header() {
       <div className="flex-1" />
 
       <div className="flex items-center gap-0.5">
+        <button onClick={handleRefresh} className={iconBtn} title="Tải lại dữ liệu">
+          <RefreshCw size={16} className={spinning ? 'animate-spin' : ''} />
+        </button>
         <button onClick={() => setShowAudit(true)} className={iconBtn} title="Lịch sử thay đổi">
           <History size={16} />
         </button>
@@ -70,6 +86,7 @@ export function Header() {
         <button onClick={handleRestore} className={iconBtn} title="Khôi phục dữ liệu">
           <Upload size={16} />
         </button>
+        <HelpButton />
         <ThemeToggle />
       </div>
 

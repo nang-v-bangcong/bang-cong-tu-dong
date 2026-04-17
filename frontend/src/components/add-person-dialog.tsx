@@ -4,21 +4,19 @@ import { UserPlus } from 'lucide-react'
 interface Props {
   open: boolean
   onClose: () => void
-  onSave: (name: string, dailyWage: number) => void
+  onSave: (name: string) => void
 }
 
 export function AddPersonDialog({ open, onClose, onSave }: Props) {
   const [name, setName] = useState('')
-  const [wage, setWage] = useState('')
 
   if (!open) return null
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim() || !wage) return
-    onSave(name.trim(), Number(wage))
+    if (!name.trim()) return
+    onSave(name.trim())
     setName('')
-    setWage('')
     onClose()
   }
 
@@ -33,23 +31,16 @@ export function AddPersonDialog({ open, onClose, onSave }: Props) {
           <UserPlus size={24} style={{ color: 'var(--primary)' }} />
           <h2 className="text-lg font-bold">Thêm người</h2>
         </div>
-        <div className="space-y-3">
-          <div>
-            <label className="block text-sm font-medium mb-1">Tên</label>
-            <input value={name} onChange={(e) => setName(e.target.value)}
-              className={inputCls} style={{ border: '1px solid var(--border)' }} autoFocus />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Lương ngày (Won)</label>
-            <input type="number" value={wage} onChange={(e) => setWage(e.target.value)}
-              className={inputCls} style={{ border: '1px solid var(--border)' }} />
-          </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Tên</label>
+          <input value={name} onChange={(e) => setName(e.target.value)}
+            className={inputCls} style={{ border: '1px solid var(--border)' }} autoFocus />
         </div>
         <div className="flex gap-2 mt-4">
           <button type="button" onClick={onClose}
             className="flex-1 py-2 text-sm rounded-[var(--radius)] hover:bg-[var(--bg-hover)] transition-colors"
             style={{ border: '1px solid var(--border)' }}>Huỷ</button>
-          <button type="submit" disabled={!name.trim() || !wage}
+          <button type="submit" disabled={!name.trim()}
             className="flex-1 py-2 text-white text-sm font-semibold hover:opacity-90 disabled:opacity-40 rounded-[var(--radius)]"
             style={{ background: 'var(--primary)' }}>Thêm</button>
         </div>

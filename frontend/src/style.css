@@ -97,3 +97,37 @@ button { transition: all var(--transition); }
 
 /* Table row hover */
 tbody tr { transition: background-color var(--transition); }
+
+/* Help content typography */
+.help-content h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--primary);
+}
+.help-content section:first-child h3 { margin-top: 0; }
+.help-content p, .help-content li, .help-content dd { font-size: 0.9rem; line-height: 1.5; color: var(--text); }
+.help-content ul { list-style: disc; padding-left: 1.25rem; margin-bottom: 0.75rem; }
+.help-content li { margin-bottom: 0.3rem; }
+.help-content dt { font-weight: 600; margin-top: 0.5rem; }
+.help-content dd { margin-left: 1rem; color: var(--text-secondary); }
+.help-content kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  font-size: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+/* Print: only help dialog visible, clean layout */
+@media print {
+  body * { visibility: hidden; }
+  .help-dialog, .help-dialog * { visibility: visible; }
+  .help-dialog { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none !important; }
+  .help-content { padding: 2rem; }
+  .help-content h3 { color: #000; page-break-after: avoid; }
+  .help-content section { page-break-inside: avoid; }
+}

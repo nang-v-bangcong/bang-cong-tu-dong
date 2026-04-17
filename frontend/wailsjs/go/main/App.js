@@ -6,6 +6,10 @@ export function BackupDB() {
   return window['go']['main']['App']['BackupDB']();
 }
 
+export function BulkUpsertWorksite(arg1, arg2) {
+  return window['go']['main']['App']['BulkUpsertWorksite'](arg1, arg2);
+}
+
 export function CopyPreviousDay(arg1, arg2) {
   return window['go']['main']['App']['CopyPreviousDay'](arg1, arg2);
 }
@@ -14,8 +18,8 @@ export function CreateAdvance(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['CreateAdvance'](arg1, arg2, arg3, arg4);
 }
 
-export function CreateTeamUser(arg1, arg2) {
-  return window['go']['main']['App']['CreateTeamUser'](arg1, arg2);
+export function CreateTeamUser(arg1) {
+  return window['go']['main']['App']['CreateTeamUser'](arg1);
 }
 
 export function CreateWorksite(arg1, arg2) {
@@ -38,8 +42,8 @@ export function DeleteWorksite(arg1) {
   return window['go']['main']['App']['DeleteWorksite'](arg1);
 }
 
-export function EnsureSelfUser(arg1, arg2) {
-  return window['go']['main']['App']['EnsureSelfUser'](arg1, arg2);
+export function EnsureSelfUser(arg1) {
+  return window['go']['main']['App']['EnsureSelfUser'](arg1);
 }
 
 export function ExportPDF(arg1, arg2, arg3) {
@@ -48,6 +52,10 @@ export function ExportPDF(arg1, arg2, arg3) {
 
 export function GetAuditLog(arg1, arg2) {
   return window['go']['main']['App']['GetAuditLog'](arg1, arg2);
+}
+
+export function GetDayNotes(arg1) {
+  return window['go']['main']['App']['GetDayNotes'](arg1);
 }
 
 export function GetMonthAdvances(arg1, arg2) {
@@ -66,6 +74,10 @@ export function GetSelfUser() {
   return window['go']['main']['App']['GetSelfUser']();
 }
 
+export function GetTeamMonthMatrix(arg1) {
+  return window['go']['main']['App']['GetTeamMonthMatrix'](arg1);
+}
+
 export function GetTeamUsers() {
   return window['go']['main']['App']['GetTeamUsers']();
 }
@@ -82,6 +94,10 @@ export function GetWorksites() {
   return window['go']['main']['App']['GetWorksites']();
 }
 
+export function Quit() {
+  return window['go']['main']['App']['Quit']();
+}
+
 export function RestoreDB() {
   return window['go']['main']['App']['RestoreDB']();
 }
@@ -90,8 +106,8 @@ export function UpdateAdvance(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['UpdateAdvance'](arg1, arg2, arg3, arg4);
 }
 
-export function UpdateUser(arg1, arg2, arg3) {
-  return window['go']['main']['App']['UpdateUser'](arg1, arg2, arg3);
+export function UpdateUser(arg1, arg2) {
+  return window['go']['main']['App']['UpdateUser'](arg1, arg2);
 }
 
 export function UpdateWorksite(arg1, arg2, arg3) {
@@ -100,4 +116,8 @@ export function UpdateWorksite(arg1, arg2, arg3) {
 
 export function UpsertAttendance(arg1, arg2, arg3, arg4, arg5) {
   return window['go']['main']['App']['UpsertAttendance'](arg1, arg2, arg3, arg4, arg5);
+}
+
+export function UpsertDayNote(arg1, arg2, arg3) {
+  return window['go']['main']['App']['UpsertDayNote'](arg1, arg2, arg3);
 }

@@ -50,6 +50,14 @@ func runMigrations(db *sql.DB) error {
 		created_at TEXT DEFAULT (datetime('now'))
 	);
 
+	CREATE TABLE IF NOT EXISTS day_notes (
+		year_month TEXT NOT NULL,
+		day INTEGER NOT NULL,
+		note TEXT DEFAULT '',
+		updated_at TEXT DEFAULT (datetime('now')),
+		PRIMARY KEY (year_month, day)
+	);
+
 	CREATE INDEX IF NOT EXISTS idx_attendance_user_date ON attendance(user_id, date);
 	CREATE INDEX IF NOT EXISTS idx_advances_user_date ON advances(user_id, date);
 	CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_log(created_at DESC);
