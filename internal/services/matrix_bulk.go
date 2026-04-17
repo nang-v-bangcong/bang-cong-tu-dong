@@ -109,6 +109,9 @@ func BulkDeleteAttendance(cells []models.CellRef) (int, error) {
 	return total, nil
 }
 
+// BulkUpsertWorksite sets worksite for many cells.
+// - worksiteID != nil: upsert (create empty-shift cells with coef=1 if missing).
+// - worksiteID == nil: clear worksite on existing cells only; never create rows.
 func BulkUpsertWorksite(cells []models.CellRef, worksiteID *int64) error {
 	if len(cells) == 0 {
 		return nil
@@ -119,7 +122,13 @@ func BulkUpsertWorksite(cells []models.CellRef, worksiteID *int64) error {
 	}
 	defer tx.Rollback()
 
-	stmt, err := tx.Prepare(`INSERT INTO attendance (user_id, date, coefficient, worksite_id, note) VALUES (?, ?, 1, ?, '') ON CONFLICT(user_id, date) DO UPDATE SET worksite_id = excluded.worksite_id`)
+	var query string
+	if worksiteID != nil {
+		query = `INSERT INTO attendance (user_id, date, coefficient, worksite_id, note) VALUES (?, ?, 1, ?, '') ON CONFLICT(user_id, date) DO UPDATE SET worksite_id = excluded.worksite_id`
+	} else {
+		query = `UPDATE attendance SET worksite_id = NULL WHERE user_id = ? AND date = ?`
+	}
+	stmt, err := tx.Prepare(query)
 	if err != nil {
 		return err
 	}
@@ -129,13 +138,23 @@ func BulkUpsertWorksite(cells []models.CellRef, worksiteID *int64) error {
 		if err := ValidateDate(c.Date); err != nil {
 			return err
 		}
-		if _, err := stmt.Exec(c.UserID, c.Date, worksiteID); err != nil {
-			return err
+		var execErr error
+		if worksiteID != nil {
+			_, execErr = stmt.Exec(c.UserID, c.Date, worksiteID)
+		} else {
+			_, execErr = stmt.Exec(c.UserID, c.Date)
+		}
+		if execErr != nil {
+			return execErr
 		}
 	}
 	if err := tx.Commit(); err != nil {
 		return err
 	}
-	WriteAudit("bulk_update", "attendance", int64(len(cells)), fmt.Sprintf("Gán công trường %d ô", len(cells)))
+	action := "Gán công trường"
+	if worksiteID == nil {
+		action = "Bỏ công trường"
+	}
+	WriteAudit("bulk_update", "attendance", int64(len(cells)), fmt.Sprintf("%s %d ô", action, len(cells)))
 	return nil
 }

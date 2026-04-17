@@ -210,3 +210,52 @@ func TestBulkDeleteAttendance_InvalidDate(t *testing.T) {
 		t.Error("want error on invalid date")
 	}
 }
+
+// Clearing worksite (wsID=nil) on empty cells must NOT create coef=1 rows.
+func TestBulkUpsertWorksite_NilOnEmptyCells_NoInsert(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+	u := seedTeamUser(t, "U")
+
+	cells := []models.CellRef{{UserID: u, Date: "2026-04-05"}}
+	if err := BulkUpsertWorksite(cells, nil); err != nil {
+		t.Fatal(err)
+	}
+
+	m, _ := GetTeamMonthMatrix("2026-04")
+	if len(m.Rows) == 0 {
+		t.Fatal("no rows")
+	}
+	c := m.Rows[0].Cells[5]
+	if c.AttendanceID != 0 {
+		t.Errorf("expected no row created, got attendanceID=%d coef=%v", c.AttendanceID, c.Coefficient)
+	}
+}
+
+// Clearing worksite (wsID=nil) on existing cells should clear only worksite_id.
+func TestBulkUpsertWorksite_NilOnExisting_ClearsWorksiteOnly(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+	ws := seedWorksite(t, "WS", 100000)
+	u := seedTeamUser(t, "U")
+	if _, err := UpsertAttendance(u, "2026-04-01", 1.5, &ws, "keep"); err != nil {
+		t.Fatal(err)
+	}
+
+	cells := []models.CellRef{{UserID: u, Date: "2026-04-01"}}
+	if err := BulkUpsertWorksite(cells, nil); err != nil {
+		t.Fatal(err)
+	}
+
+	m, _ := GetTeamMonthMatrix("2026-04")
+	c := m.Rows[0].Cells[1]
+	if c.Coefficient != 1.5 {
+		t.Errorf("coef changed: %v", c.Coefficient)
+	}
+	if c.WorksiteID != nil {
+		t.Errorf("worksite should be nil, got %+v", c.WorksiteID)
+	}
+	if c.Note != "keep" {
+		t.Errorf("note changed: %q", c.Note)
+	}
+}
