@@ -37,14 +37,35 @@ func EnsureSelfUser(name string) (models.User, error) {
 }
 
 func UpdateUser(id int64, name string) error {
-	_, err := db.Exec(
-		`UPDATE users SET name = ? WHERE id = ?`,
-		name, id,
-	)
+	n := strings.TrimSpace(name)
+	if n == "" {
+		return fmt.Errorf("tên không hợp lệ")
+	}
+	if err := checkNameUnique(n, id); err != nil {
+		return err
+	}
+	_, err := db.Exec(`UPDATE users SET name = ? WHERE id = ?`, n, id)
 	if err == nil {
-		WriteAudit("update", "user", id, fmt.Sprintf("Đổi tên: %s", name))
+		WriteAudit("update", "user", id, fmt.Sprintf("Đổi tên: %s", n))
 	}
 	return err
+}
+
+// checkNameUnique returns an error if another user already has this name.
+// excludeID=0 skips no one (use for create); otherwise exclude that ID (use for update).
+func checkNameUnique(name string, excludeID int64) error {
+	var id int64
+	err := db.QueryRow(`SELECT id FROM users WHERE name = ? LIMIT 1`, name).Scan(&id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if id == excludeID {
+		return nil
+	}
+	return fmt.Errorf("tên đã tồn tại: %s", name)
 }
 
 func GetTeamUsers() ([]models.User, error) {
@@ -68,16 +89,20 @@ func GetTeamUsers() ([]models.User, error) {
 }
 
 func CreateTeamUser(name string) (models.User, error) {
-	res, err := db.Exec(
-		`INSERT INTO users (name, is_self) VALUES (?, 0)`,
-		name,
-	)
+	n := strings.TrimSpace(name)
+	if n == "" {
+		return models.User{}, fmt.Errorf("tên không hợp lệ")
+	}
+	if err := checkNameUnique(n, 0); err != nil {
+		return models.User{}, err
+	}
+	res, err := db.Exec(`INSERT INTO users (name, is_self) VALUES (?, 0)`, n)
 	if err != nil {
 		return models.User{}, err
 	}
 	id, _ := res.LastInsertId()
-	WriteAudit("create", "user", id, fmt.Sprintf("Thêm người: %s", name))
-	return models.User{ID: id, Name: name}, nil
+	WriteAudit("create", "user", id, fmt.Sprintf("Thêm người: %s", n))
+	return models.User{ID: id, Name: n}, nil
 }
 
 func DeleteTeamUser(id int64) error {

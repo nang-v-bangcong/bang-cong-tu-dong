@@ -1,6 +1,10 @@
 package services
 
-import "fmt"
+import (
+	"database/sql"
+	"errors"
+	"fmt"
+)
 
 // FillDayForAllUsers stamps the given coef (and optional worksite) into one day
 // for every team user. overwrite=false keeps existing cells untouched.
@@ -150,6 +154,25 @@ func CopyDayForAll(yearMonth string, srcDay, dstDay int, overwrite bool) (int, e
 		n, _ := res.RowsAffected()
 		affected += int(n)
 	}
+
+	// Copy the day-level note (if any) from src -> dst, honoring overwrite.
+	var srcNote string
+	err = tx.QueryRow(`SELECT note FROM day_notes WHERE year_month = ? AND day = ?`, yearMonth, srcDay).Scan(&srcNote)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return 0, err
+	}
+	if err == nil && srcNote != "" {
+		var noteQuery string
+		if overwrite {
+			noteQuery = `INSERT INTO day_notes (year_month, day, note, updated_at) VALUES (?, ?, ?, datetime('now')) ON CONFLICT(year_month, day) DO UPDATE SET note = excluded.note, updated_at = excluded.updated_at`
+		} else {
+			noteQuery = `INSERT INTO day_notes (year_month, day, note, updated_at) VALUES (?, ?, ?, datetime('now')) ON CONFLICT(year_month, day) DO NOTHING`
+		}
+		if _, err := tx.Exec(noteQuery, yearMonth, dstDay, srcNote); err != nil {
+			return 0, err
+		}
+	}
+
 	if err := tx.Commit(); err != nil {
 		return 0, err
 	}

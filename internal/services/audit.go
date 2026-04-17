@@ -1,10 +1,15 @@
 package services
 
-import "bang-cong/internal/models"
+import (
+	"bang-cong/internal/models"
+	"log"
+)
 
 func WriteAudit(action, target string, targetID int64, details string) {
-	db.Exec(`INSERT INTO audit_log (action, target, target_id, details) VALUES (?, ?, ?, ?)`,
-		action, target, targetID, details)
+	if _, err := db.Exec(`INSERT INTO audit_log (action, target, target_id, details) VALUES (?, ?, ?, ?)`,
+		action, target, targetID, details); err != nil {
+		log.Printf("audit write failed (%s/%s/%d): %v", action, target, targetID, err)
+	}
 }
 
 func GetAuditLog(limit int, offset int) ([]models.AuditLog, error) {

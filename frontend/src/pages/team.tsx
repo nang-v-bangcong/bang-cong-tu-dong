@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { toast } from 'sonner'
-import { UserPlus, Trash2, Pencil, Users } from 'lucide-react'
+import { Pencil } from 'lucide-react'
 import { useAppStore } from '../stores/app-store'
 import { type User, type Attendance, type Summary, type WsSummary, type Worksite, mapAttendance, mapWorksites, mapUsers } from '../lib/utils'
 import { AddPersonDialog } from '../components/add-person-dialog'
@@ -14,6 +14,7 @@ import { TeamSummary } from '../components/team-summary'
 import { ResizableSplit } from '../components/resizable-split'
 import { BatchAttendance } from '../components/batch-attendance'
 import { ZoomableArea } from '../components/zoomable-area'
+import { TeamUserBar } from '../components/team-user-bar'
 import {
   GetTeamUsers, CreateTeamUser, DeleteTeamUser, UpdateUser, BulkCreateUsers,
   GetMonthAttendance, UpsertAttendance, DeleteAttendance,
@@ -155,43 +156,19 @@ export function TeamPage() {
       <ResizableSplit
         left={
           <div className="flex flex-col h-full p-3 gap-3">
-            <div className="flex gap-1.5 flex-wrap">
-              {users.map((u) => (
-                <div key={u.id} className="flex items-center gap-0.5">
-                  <button onClick={() => setSelected(u)}
-                    className={`px-2.5 py-1 text-xs font-medium transition-all ${selected?.id === u.id ? 'text-white' : 'hover:bg-[var(--bg-hover)]'}`}
-                    style={selected?.id === u.id
-                      ? { background: 'var(--primary)', borderRadius: 'var(--radius-sm)' }
-                      : { background: 'var(--bg-muted)', borderRadius: 'var(--radius-sm)' }}>
-                    {u.name}
-                  </button>
-                  <button onClick={() => setDeleteTarget(u)} className="p-0.5 opacity-30 hover:opacity-100 hover:text-[var(--danger)] transition-opacity">
-                    <Trash2 size={10} />
-                  </button>
-                </div>
-              ))}
-              <button onClick={() => setShowAdd(true)}
-                className="px-2.5 py-1 text-xs text-white font-medium flex items-center gap-1 hover:opacity-90 transition-opacity"
-                style={{ background: 'var(--primary)', borderRadius: 'var(--radius-sm)' }}>
-                <UserPlus size={12} /> Thêm
-              </button>
-              {users.length > 0 && (
-                <button onClick={() => setShowBatch(true)}
-                  className="px-2.5 py-1 text-xs text-white font-medium flex items-center gap-1 hover:opacity-90 transition-opacity"
-                  style={{ background: 'var(--success)', borderRadius: 'var(--radius-sm)' }}>
-                  <Users size={12} /> Chấm công nhóm
-                </button>
-              )}
-            </div>
-            {selected ? (
-              loading
+            <TeamUserBar
+              users={users}
+              selected={selected}
+              onSelect={setSelected}
+              onRequestDelete={setDeleteTarget}
+              onAdd={() => setShowAdd(true)}
+              onBatch={() => setShowBatch(true)}
+            />
+            {!selected
+              ? <p className="text-center py-8 text-sm" style={{ color: 'var(--text-muted)' }}>Chưa có người nào. Bấm "Thêm" để bắt đầu.</p>
+              : loading
                 ? <div className="flex-1 flex items-center justify-center text-sm" style={{ color: 'var(--text-muted)' }}>Đang tải...</div>
-                : (
-                  <ZoomableArea storageKey="zoom-team" className="flex-1">
-                    <AttendanceTable yearMonth={yearMonth} records={records} worksites={worksites} today={today} onSave={handleSave} onDelete={handleDelete} />
-                  </ZoomableArea>
-                )
-            ) : <p className="text-center py-8 text-sm" style={{ color: 'var(--text-muted)' }}>Chưa có người nào. Bấm "Thêm" để bắt đầu.</p>}
+                : <ZoomableArea storageKey="zoom-team" className="flex-1"><AttendanceTable yearMonth={yearMonth} records={records} worksites={worksites} today={today} onSave={handleSave} onDelete={handleDelete} /></ZoomableArea>}
           </div>
         }
         right={
@@ -200,9 +177,7 @@ export function TeamPage() {
               <>
                 <div className="flex items-center justify-between">
                   <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Thông tin</span>
-                  <button onClick={() => setShowEdit(true)} className="p-1 rounded-[var(--radius-sm)] hover:bg-[var(--bg-hover)] transition-colors" style={{ color: 'var(--text-muted)' }}>
-                    <Pencil size={14} />
-                  </button>
+                  <button onClick={() => setShowEdit(true)} className="p-1 rounded-[var(--radius-sm)] hover:bg-[var(--bg-hover)] transition-colors" style={{ color: 'var(--text-muted)' }}><Pencil size={14} /></button>
                 </div>
                 <MonthSummary userName={selected.name} {...summary} worksiteBreakdown={wsBreakdown} />
                 <AdvancePanel userId={selected.id} yearMonth={yearMonth} onChanged={() => { loadPersonData(selected); loadTeamSummary() }} />

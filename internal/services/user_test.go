@@ -98,3 +98,66 @@ func TestBulkCreateUsers_TrimsWhitespace(t *testing.T) {
 		t.Errorf("want Alice (trimmed), got %+v", res.Created)
 	}
 }
+
+func TestCreateTeamUser_RejectsDuplicate(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+
+	if _, err := CreateTeamUser("Anh A"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := CreateTeamUser("Anh A"); err == nil {
+		t.Error("expected duplicate rejection")
+	}
+}
+
+func TestCreateTeamUser_RejectsBlank(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+
+	if _, err := CreateTeamUser("   "); err == nil {
+		t.Error("expected blank name rejection")
+	}
+}
+
+func TestCreateTeamUser_TrimsWhitespace(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+
+	u, err := CreateTeamUser("  Anh B  ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if u.Name != "Anh B" {
+		t.Errorf("name=%q want 'Anh B'", u.Name)
+	}
+}
+
+func TestUpdateUser_RejectsDuplicate(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+
+	a, err := CreateTeamUser("Anh A")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := CreateTeamUser("Anh B"); err != nil {
+		t.Fatal(err)
+	}
+	if err := UpdateUser(a.ID, "Anh B"); err == nil {
+		t.Error("expected rename-to-duplicate rejection")
+	}
+}
+
+func TestUpdateUser_KeepsSameName(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+
+	a, err := CreateTeamUser("Anh A")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := UpdateUser(a.ID, "Anh A"); err != nil {
+		t.Errorf("renaming user to its own name should be a noop, got %v", err)
+	}
+}

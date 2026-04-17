@@ -130,6 +130,64 @@ func TestFillDayForAllUsers_CoefOutOfRange(t *testing.T) {
 	}
 }
 
+func TestCopyDayForAll_CopiesDayNote(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+	ws := seedWorksite(t, "WS", 100000)
+	u := seedTeamUser(t, "U")
+	if _, err := UpsertAttendance(u, "2026-04-10", 1.0, &ws, ""); err != nil {
+		t.Fatal(err)
+	}
+	if err := UpsertDayNote("2026-04", 10, "original note"); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := CopyDayForAll("2026-04", 10, 11, false); err != nil {
+		t.Fatal(err)
+	}
+
+	notes, err := GetDayNotes("2026-04")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got string
+	for _, n := range notes {
+		if n.Day == 11 {
+			got = n.Note
+		}
+	}
+	if got != "original note" {
+		t.Errorf("day 11 note=%q want 'original note'", got)
+	}
+}
+
+func TestCopyDayForAll_NoOverwriteKeepsDstNote(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+	ws := seedWorksite(t, "WS", 100000)
+	u := seedTeamUser(t, "U")
+	if _, err := UpsertAttendance(u, "2026-04-10", 1.0, &ws, ""); err != nil {
+		t.Fatal(err)
+	}
+	if err := UpsertDayNote("2026-04", 10, "src note"); err != nil {
+		t.Fatal(err)
+	}
+	if err := UpsertDayNote("2026-04", 11, "dst note"); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := CopyDayForAll("2026-04", 10, 11, false); err != nil {
+		t.Fatal(err)
+	}
+
+	notes, _ := GetDayNotes("2026-04")
+	for _, n := range notes {
+		if n.Day == 11 && n.Note != "dst note" {
+			t.Errorf("dst note overwritten: got %q", n.Note)
+		}
+	}
+}
+
 func TestCopyDayForAll_CopiesToEmptyDay(t *testing.T) {
 	cleanup := setupTestDB(t)
 	defer cleanup()
