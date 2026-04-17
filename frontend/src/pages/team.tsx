@@ -84,7 +84,7 @@ export function TeamPage() {
 
   const handleAddPerson = async (name: string) => {
     try {
-      const u = await CreateTeamUser(name) as any
+      const u = await CreateTeamUser(name)
       await reload(); setSelected({ id: u.id, name: u.name })
       toast.success(`Đã thêm ${name}`)
     } catch { toast.error('Lỗi thêm người') }
@@ -123,7 +123,7 @@ export function TeamPage() {
 
   const handleSave = async (date: string, coeff: number, wsId: number | null, note: string) => {
     if (!selected) return
-    try { await UpsertAttendance(selected.id, date, coeff, wsId as any, note); loadPersonData(selected); loadTeamSummary() }
+    try { await UpsertAttendance(selected.id, date, coeff, wsId, note); loadPersonData(selected); loadTeamSummary() }
     catch { toast.error('Lỗi lưu') }
   }
 
@@ -135,7 +135,7 @@ export function TeamPage() {
 
   const handleQuickAdd = async () => {
     if (!selected || !today) return
-    try { await UpsertAttendance(selected.id, today, 1, null as any, ''); loadPersonData(selected); loadTeamSummary(); toast.success('Đã chấm công!') }
+    try { await UpsertAttendance(selected.id, today, 1, null, ''); loadPersonData(selected); loadTeamSummary(); toast.success('Đã chấm công!') }
     catch { toast.error('Lỗi chấm công') }
   }
 

@@ -21,8 +21,10 @@ export function ExitDialog() {
   const handleSave = () => {
     // Blur active element để kích hoạt onBlur save ở các ô input.
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
-    // Chờ handler onBlur hoàn tất rồi mới quit.
-    setTimeout(() => { setDirty(false); Quit() }, 300)
+    // TODO: refactor onBlur save chain to expose a promise so we can await it
+    // instead of this optimistic delay. 500ms is a safe upper bound for local
+    // SQLite writes + Wails IPC round-trip on slower machines.
+    setTimeout(() => { setDirty(false); Quit() }, 500)
   }
 
   const handleDiscard = () => Quit()

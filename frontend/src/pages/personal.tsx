@@ -59,7 +59,7 @@ export function PersonalPage() {
 
   const handleSetup = async (name: string) => {
     try {
-      const u = await EnsureSelfUser(name) as any
+      const u = await EnsureSelfUser(name)
       setUser(u); setNeedSetup(false); loadData(u)
       toast.success('Thiết lập thành công!')
     } catch { toast.error('Lỗi thiết lập') }
@@ -77,7 +77,7 @@ export function PersonalPage() {
 
   const handleSave = async (date: string, coeff: number, wsId: number | null, note: string) => {
     if (!user) return
-    try { await UpsertAttendance(user.id, date, coeff, wsId as any, note); loadData(user) }
+    try { await UpsertAttendance(user.id, date, coeff, wsId, note); loadData(user) }
     catch { toast.error('Lỗi lưu chấm công') }
   }
 
@@ -88,7 +88,7 @@ export function PersonalPage() {
 
   const handleQuickAdd = async () => {
     if (!user || !today) return
-    try { await UpsertAttendance(user.id, today, 1, null as any, ''); loadData(user); toast.success('Đã chấm công hôm nay!') }
+    try { await UpsertAttendance(user.id, today, 1, null, ''); loadData(user); toast.success('Đã chấm công hôm nay!') }
     catch { toast.error('Lỗi chấm công') }
   }
 
