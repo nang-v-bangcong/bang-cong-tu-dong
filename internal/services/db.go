@@ -15,11 +15,6 @@ func InitDB() (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	// One-time migration: copy DB from legacy AppData location to exe-dir so
-	// existing users keep their data after switching to portable storage.
-	if err := migrateLegacyDB(dataDir); err != nil {
-		return nil, err
-	}
 	dbPath := filepath.Join(dataDir, "bang-cong.db")
 
 	db, err = sql.Open("sqlite", "file:"+dbPath+"?_pragma=journal_mode(wal)&_pragma=foreign_keys(1)")
@@ -32,43 +27,6 @@ func InitDB() (*sql.DB, error) {
 	}
 
 	return db, nil
-}
-
-// migrateLegacyDB copies bang-cong.db (+ -wal/-shm sidecars) from the legacy
-// AppData location into the new exe-adjacent dataDir, once, if dataDir has no
-// DB yet. Safe to call when no legacy DB exists — returns nil.
-func migrateLegacyDB(dataDir string) error {
-	newPath := filepath.Join(dataDir, "bang-cong.db")
-	if _, err := os.Stat(newPath); err == nil {
-		return nil // already migrated
-	}
-	root, err := os.UserConfigDir()
-	if err != nil {
-		return nil // best effort
-	}
-	legacyDir := filepath.Join(root, "bang-cong")
-	if legacyDir == dataDir {
-		return nil
-	}
-	legacyDB := filepath.Join(legacyDir, "bang-cong.db")
-	if _, err := os.Stat(legacyDB); err != nil {
-		return nil // nothing to migrate
-	}
-	for _, suffix := range []string{"", "-wal", "-shm"} {
-		src := legacyDB + suffix
-		dst := newPath + suffix
-		data, err := os.ReadFile(src)
-		if err != nil {
-			if suffix == "" {
-				return err
-			}
-			continue // sidecar optional
-		}
-		if err := os.WriteFile(dst, data, 0644); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func CloseDB() {
