@@ -1,16 +1,17 @@
 import { useCallback, useRef } from 'react'
 import { toast } from 'sonner'
 import { dateOf } from './matrix-utils'
-import { snapshotCells, applySnapshot } from './matrix-history'
-import { useHistoryStore, type CellSnap } from '../stores/matrix-history-store'
+import { applySnapshot } from './matrix-history'
+import { type CellSnap } from '../stores/matrix-history-store'
 import { type models, type services } from '../../wailsjs/go/models'
 import {
   UpsertAttendance, UpsertDayNote,
   BulkUpsertWorksite, BulkUpsertCell, BulkUpsertCells, BulkDeleteAttendance,
   FillDayForAllUsers, CopyDayForAll,
 } from '../../wailsjs/go/main/App'
+import { useMatrixHistoryRecorder, type BulkCells } from './use-matrix-history-recorder'
 
-export type BulkCells = Array<{ userId: number; day: number }>
+export type { BulkCells }
 
 interface Opts {
   yearMonth: string
@@ -21,38 +22,9 @@ interface Opts {
 export function useMatrixMutations({ yearMonth, matrix, reload }: Opts) {
   const matrixRef = useRef(matrix)
   matrixRef.current = matrix
-  const push = useHistoryStore((s) => s.push)
-
   const ym = yearMonth
 
-  const record = useCallback(async (keys: BulkCells, mutate: () => Promise<void>) => {
-    const snapBefore = matrixRef.current ? snapshotCells(matrixRef.current, keys) : []
-    await mutate()
-    const fresh = await reload()
-    const snapAfter = fresh ? snapshotCells(fresh, keys) : snapBefore.map((s) => ({ ...s, state: null }))
-    push({ ym, before: snapBefore, after: snapAfter, ts: Date.now() })
-  }, [ym, reload, push])
-
-  const recordFromKeys = useCallback(async (
-    beforeKeys: BulkCells,
-    mutate: () => Promise<void>,
-    afterKeys?: BulkCells,
-  ) => {
-    const snapBefore = matrixRef.current ? snapshotCells(matrixRef.current, beforeKeys) : []
-    await mutate()
-    const fresh = await reload()
-    const keysToCapture = afterKeys ?? beforeKeys
-    const snapAfter = fresh ? snapshotCells(fresh, keysToCapture) : []
-    // Merge both key sets so undo/redo covers all affected cells
-    const union = new Map<string, CellSnap>()
-    const latestAfter = fresh ? snapshotCells(fresh, beforeKeys) : snapBefore.map((s) => ({ ...s, state: null }))
-    for (const s of snapBefore) union.set(`${s.userId}:${s.day}`, s)
-    for (const s of latestAfter) union.set(`${s.userId}:${s.day}`, { ...s })
-    push({ ym, before: snapBefore, after: Array.from(union.values()).map((s) => {
-      const a = snapAfter.find((x) => x.userId === s.userId && x.day === s.day)
-      return a ?? s
-    }), ts: Date.now() })
-  }, [ym, reload, push])
+  const { record, recordFromKeys } = useMatrixHistoryRecorder({ yearMonth: ym, matrixRef, reload })
 
   const toRefs = useCallback((cells: BulkCells): models.CellRef[] =>
     cells.map((c) => ({ userId: c.userId, date: dateOf(ym, c.day) } as models.CellRef)),
