@@ -1,0 +1,24 @@
+{
+  "FixedFileInfo": {
+    "FileVersion": { "Major": 1, "Minor": 0, "Patch": 0, "Build": 0 },
+    "ProductVersion": { "Major": 1, "Minor": 0, "Patch": 0, "Build": 0 },
+    "FileFlagsMask": "3f", "FileFlags ": "00",
+    "FileOS": "040004", "FileType": "01", "FileSubType": "00"
+  },
+  "StringFileInfo": {
+    "Comments": "Ứng dụng chấm công và quản lý lương cho công nhân xây dựng tại Hàn Quốc",
+    "CompanyName": "Van Nang",
+    "FileDescription": "Bảng Công Tự Động",
+    "FileVersion": "1.0.0.0",
+    "InternalName": "BangCong",
+    "LegalCopyright": "© 2026 Van Nang. All rights reserved.",
+    "OriginalFilename": "BangCong.exe",
+    "ProductName": "Bảng Công Tự Động",
+    "ProductVersion": "1.0.0.0"
+  },
+  "VarFileInfo": {
+    "Translation": { "LangID": "0409", "CharsetID": "04B0" }
+  },
+  "IconPath": "build/windows/icon.ico",
+  "ManifestPath": "build/windows/wails.exe.resolved.manifest"
+}
