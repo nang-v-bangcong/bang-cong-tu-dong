@@ -6,6 +6,9 @@ import (
 
 func GetMonthSummary(userID int64, yearMonth string) (models.MonthSummary, error) {
 	var s models.MonthSummary
+	if err := ValidateYearMonth(yearMonth); err != nil {
+		return s, err
+	}
 
 	// Paid: attendance với worksite có daily_wage > 0.
 	// Unpaid: phần còn lại (không có worksite hoặc worksite daily_wage = 0).
@@ -44,6 +47,9 @@ func GetMonthSummary(userID int64, yearMonth string) (models.MonthSummary, error
 }
 
 func GetWorksiteSummary(userID int64, yearMonth string) ([]models.WorksiteSummary, error) {
+	if err := ValidateYearMonth(yearMonth); err != nil {
+		return nil, err
+	}
 	rows, err := db.Query(`
 		SELECT a.worksite_id, COALESCE(w.name, 'Không xác định'),
 			COALESCE(w.daily_wage, 0), SUM(a.coefficient),

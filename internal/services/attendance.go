@@ -6,6 +6,9 @@ import (
 )
 
 func GetMonthAttendance(userID int64, yearMonth string) ([]models.Attendance, error) {
+	if err := ValidateYearMonth(yearMonth); err != nil {
+		return nil, err
+	}
 	rows, err := db.Query(`
 		SELECT a.id, a.user_id, a.date, a.coefficient, a.worksite_id, a.note, a.created_at,
 			COALESCE(w.name, '')

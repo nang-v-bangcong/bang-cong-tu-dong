@@ -6,6 +6,9 @@ import (
 )
 
 func GetMonthAdvances(userID int64, yearMonth string) ([]models.Advance, error) {
+	if err := ValidateYearMonth(yearMonth); err != nil {
+		return nil, err
+	}
 	rows, err := db.Query(`
 		SELECT id, user_id, date, amount, note, created_at
 		FROM advances

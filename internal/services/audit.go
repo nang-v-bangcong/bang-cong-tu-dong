@@ -16,6 +16,9 @@ func GetAuditLog(limit int, offset int) ([]models.AuditLog, error) {
 	if limit <= 0 {
 		limit = 50
 	}
+	if limit > 500 {
+		limit = 500
+	}
 	if offset < 0 {
 		offset = 0
 	}
