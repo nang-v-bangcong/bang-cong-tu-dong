@@ -15,6 +15,10 @@ func InitDB() (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	// One-time migration: move DB from legacy exe-dir location to AppData.
+	if err := migrateLegacyDB(dataDir); err != nil {
+		return nil, err
+	}
 	dbPath := filepath.Join(dataDir, "bang-cong.db")
 
 	db, err = sql.Open("sqlite", "file:"+dbPath+"?_pragma=journal_mode(wal)&_pragma=foreign_keys(1)")
@@ -27,6 +31,43 @@ func InitDB() (*sql.DB, error) {
 	}
 
 	return db, nil
+}
+
+// migrateLegacyDB copies bang-cong.db (+ -wal/-shm sidecars) from the exe
+// directory to the new dataDir, once, if dataDir has no DB yet.
+// Safe to call when no legacy DB exists — returns nil.
+func migrateLegacyDB(dataDir string) error {
+	newPath := filepath.Join(dataDir, "bang-cong.db")
+	if _, err := os.Stat(newPath); err == nil {
+		return nil // already migrated
+	}
+	exe, err := os.Executable()
+	if err != nil {
+		return nil // best effort
+	}
+	legacyDir := filepath.Dir(exe)
+	if legacyDir == dataDir {
+		return nil
+	}
+	legacyDB := filepath.Join(legacyDir, "bang-cong.db")
+	if _, err := os.Stat(legacyDB); err != nil {
+		return nil // nothing to migrate
+	}
+	for _, suffix := range []string{"", "-wal", "-shm"} {
+		src := legacyDB + suffix
+		dst := newPath + suffix
+		data, err := os.ReadFile(src)
+		if err != nil {
+			if suffix == "" {
+				return err
+			}
+			continue // sidecar optional
+		}
+		if err := os.WriteFile(dst, data, 0644); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func CloseDB() {
@@ -77,10 +118,17 @@ func RestoreDB(srcPath string) error {
 	return err
 }
 
+// getDataDir returns the writable data directory:
+// %AppData%\bang-cong on Windows, $XDG_CONFIG_HOME/bang-cong elsewhere.
+// The directory is created if it does not exist.
 func getDataDir() (string, error) {
-	exe, err := os.Executable()
+	root, err := os.UserConfigDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Dir(exe), nil
+	dir := filepath.Join(root, "bang-cong")
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return "", err
+	}
+	return dir, nil
 }
