@@ -42,9 +42,16 @@ func UpdateWorksite(id int64, name string, dailyWage int64) error {
 }
 
 func DeleteWorksite(id int64) error {
-	_, err := db.Exec(`DELETE FROM worksites WHERE id = ?`, id)
-	if err == nil {
-		WriteAudit("delete", "worksite", id, fmt.Sprintf("Xóa nơi làm việc #%d", id))
+	var inUse int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM attendance WHERE worksite_id = ?`, id).Scan(&inUse); err != nil {
+		return err
 	}
-	return err
+	if inUse > 0 {
+		return fmt.Errorf("đang dùng ở %d ô chấm công, cần đổi công trường trước khi xóa", inUse)
+	}
+	if _, err := db.Exec(`DELETE FROM worksites WHERE id = ?`, id); err != nil {
+		return err
+	}
+	WriteAudit("delete", "worksite", id, fmt.Sprintf("Xóa nơi làm việc #%d", id))
+	return nil
 }

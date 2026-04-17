@@ -62,3 +62,9 @@ type MonthSummary struct {
 	UnpaidDays        int     `json:"unpaidDays"`
 	UnpaidCoefficient float64 `json:"unpaidCoefficient"`
 }
+
+type UserMonthSummary struct {
+	UserID   int64        `json:"userId"`
+	UserName string       `json:"userName"`
+	Summary  MonthSummary `json:"summary"`
+}

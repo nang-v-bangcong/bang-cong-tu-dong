@@ -3,10 +3,10 @@ import { toast } from 'sonner'
 import { dateOf } from './matrix-utils'
 import { snapshotCells, applySnapshot } from './matrix-history'
 import { useHistoryStore, type CellSnap } from '../stores/matrix-history-store'
-import { type models } from '../../wailsjs/go/models'
+import { type models, type services } from '../../wailsjs/go/models'
 import {
   UpsertAttendance, UpsertDayNote,
-  BulkUpsertWorksite, BulkUpsertCell, BulkDeleteAttendance,
+  BulkUpsertWorksite, BulkUpsertCell, BulkUpsertCells, BulkDeleteAttendance,
   FillDayForAllUsers, CopyDayForAll,
 } from '../../wailsjs/go/main/App'
 
@@ -108,13 +108,14 @@ export function useMatrixMutations({ yearMonth, matrix, reload }: Opts) {
     try {
       const keys: BulkCells = items.map((i) => ({ userId: i.userId, day: i.day }))
       await record(keys, async () => {
-        const groups = new Map<number, models.CellRef[]>()
-        for (const it of items) {
-          const arr = groups.get(it.coef) ?? []
-          arr.push({ userId: it.userId, date: dateOf(ym, it.day) } as models.CellRef)
-          groups.set(it.coef, arr)
-        }
-        for (const [coef, refs] of groups) await BulkUpsertCell(refs, coef, null)
+        const payload: services.CellUpsert[] = items.map((it) => ({
+          userId: it.userId,
+          date: dateOf(ym, it.day),
+          coefficient: it.coef,
+          worksiteId: undefined,
+          note: '',
+        }))
+        await BulkUpsertCells(payload)
       })
     } catch { toast.error('Lỗi dán dữ liệu') }
   }, [ym, record])

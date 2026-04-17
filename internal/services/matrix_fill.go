@@ -16,7 +16,7 @@ func FillDayForAllUsers(yearMonth string, day int, coef float64, worksiteID *int
 	if day < 1 || day > dim {
 		return 0, fmt.Errorf("ngày %d ngoài tháng %s", day, yearMonth)
 	}
-	if coef < 0 || coef > 3.0 {
+	if coef <= 0 || coef > 3.0 {
 		return 0, fmt.Errorf("hệ số ngoài khoảng: %.1f", coef)
 	}
 	date := fmt.Sprintf("%s-%02d", yearMonth, day)

@@ -17,7 +17,7 @@ import { ZoomableArea } from '../components/zoomable-area'
 import {
   GetTeamUsers, CreateTeamUser, DeleteTeamUser, UpdateUser, BulkCreateUsers,
   GetMonthAttendance, UpsertAttendance, DeleteAttendance,
-  GetMonthSummary, CopyPreviousDay,
+  GetMonthSummary, CopyPreviousDay, GetTeamMonthSummaries,
   GetWorksites, GetToday, ExportPDF, GetWorksiteSummary,
 } from '../../wailsjs/go/main/App'
 
@@ -63,28 +63,23 @@ export function TeamPage() {
     } catch { toast.error('Lỗi tải dữ liệu') } finally { setLoading(false) }
   }, [yearMonth])
 
-  const loadTeamSummary = useCallback(async (us: User[]) => {
+  const loadTeamSummary = useCallback(async () => {
     try {
-      const summaries = await Promise.all(
-        us.map(async (u) => {
-          const s = await GetMonthSummary(u.id, yearMonth) as Summary
-          return { ...s, userId: u.id, name: u.name }
-        })
-      )
-      setTeamData(summaries)
+      const rows = await GetTeamMonthSummaries(yearMonth) as Array<{ userId: number; userName: string; summary: Summary }>
+      setTeamData(rows.map((r) => ({ ...r.summary, userId: r.userId, name: r.userName })))
     } catch { toast.error('Lỗi tải tổng kết') }
   }, [yearMonth])
 
   useEffect(() => {
     loadUsers().then((us) => {
-      loadTeamSummary(us)
+      loadTeamSummary()
       if (us.length > 0 && !selected) setSelected(us[0])
     })
   }, [yearMonth, refreshTrigger, loadUsers, loadTeamSummary])
 
   useEffect(() => { if (selected) loadPersonData(selected) }, [selected, yearMonth, refreshTrigger, loadPersonData])
 
-  const reload = async () => { const us = await loadUsers(); loadTeamSummary(us); return us }
+  const reload = async () => { const us = await loadUsers(); loadTeamSummary(); return us }
 
   const handleAddPerson = async (name: string) => {
     try {
@@ -127,25 +122,25 @@ export function TeamPage() {
 
   const handleSave = async (date: string, coeff: number, wsId: number | null, note: string) => {
     if (!selected) return
-    try { await UpsertAttendance(selected.id, date, coeff, wsId as any, note); loadPersonData(selected); loadTeamSummary(users) }
+    try { await UpsertAttendance(selected.id, date, coeff, wsId as any, note); loadPersonData(selected); loadTeamSummary() }
     catch { toast.error('Lỗi lưu') }
   }
 
   const handleDelete = async (id: number) => {
     if (!selected) return
-    try { await DeleteAttendance(id); loadPersonData(selected); loadTeamSummary(users) }
+    try { await DeleteAttendance(id); loadPersonData(selected); loadTeamSummary() }
     catch { toast.error('Lỗi xóa') }
   }
 
   const handleQuickAdd = async () => {
     if (!selected || !today) return
-    try { await UpsertAttendance(selected.id, today, 1, null as any, ''); loadPersonData(selected); loadTeamSummary(users); toast.success('Đã chấm công!') }
+    try { await UpsertAttendance(selected.id, today, 1, null as any, ''); loadPersonData(selected); loadTeamSummary(); toast.success('Đã chấm công!') }
     catch { toast.error('Lỗi chấm công') }
   }
 
   const handleCopy = async () => {
     if (!selected || !today) return
-    try { await CopyPreviousDay(selected.id, today); loadPersonData(selected); loadTeamSummary(users); toast.success('Đã copy') }
+    try { await CopyPreviousDay(selected.id, today); loadPersonData(selected); loadTeamSummary(); toast.success('Đã copy') }
     catch { toast.error('Không tìm thấy ngày trước') }
   }
 
@@ -210,7 +205,7 @@ export function TeamPage() {
                   </button>
                 </div>
                 <MonthSummary userName={selected.name} {...summary} worksiteBreakdown={wsBreakdown} />
-                <AdvancePanel userId={selected.id} yearMonth={yearMonth} onChanged={() => { loadPersonData(selected); loadTeamSummary(users) }} />
+                <AdvancePanel userId={selected.id} yearMonth={yearMonth} onChanged={() => { loadPersonData(selected); loadTeamSummary() }} />
                 <QuickActions onQuickAdd={handleQuickAdd} onCopyPrev={handleCopy} onExportPDF={handleExport} />
               </>
             )}

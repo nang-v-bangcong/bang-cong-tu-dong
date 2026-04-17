@@ -18,6 +18,10 @@ export function BulkUpsertCell(arg1, arg2, arg3) {
   return window['go']['main']['App']['BulkUpsertCell'](arg1, arg2, arg3);
 }
 
+export function BulkUpsertCells(arg1) {
+  return window['go']['main']['App']['BulkUpsertCells'](arg1);
+}
+
 export function BulkUpsertWorksite(arg1, arg2) {
   return window['go']['main']['App']['BulkUpsertWorksite'](arg1, arg2);
 }
@@ -100,6 +104,10 @@ export function GetSelfUser() {
 
 export function GetTeamMonthMatrix(arg1) {
   return window['go']['main']['App']['GetTeamMonthMatrix'](arg1);
+}
+
+export function GetTeamMonthSummaries(arg1) {
+  return window['go']['main']['App']['GetTeamMonthSummaries'](arg1);
 }
 
 export function GetTeamUsers() {

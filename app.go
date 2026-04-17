@@ -112,6 +112,10 @@ func (a *App) GetWorksiteSummary(userID int64, yearMonth string) ([]models.Works
 	return services.GetWorksiteSummary(userID, yearMonth)
 }
 
+func (a *App) GetTeamMonthSummaries(yearMonth string) ([]models.UserMonthSummary, error) {
+	return services.GetTeamMonthSummaries(yearMonth)
+}
+
 func (a *App) CopyPreviousDay(userID int64, targetDate string) (models.Attendance, error) {
 	return services.CopyPreviousDay(userID, targetDate)
 }
@@ -140,6 +144,10 @@ func (a *App) BulkUpsertWorksite(cells []models.CellRef, worksiteID *int64) erro
 
 func (a *App) BulkUpsertCell(cells []models.CellRef, coef *float64, worksiteID *int64) error {
 	return services.BulkUpsertCell(cells, coef, worksiteID)
+}
+
+func (a *App) BulkUpsertCells(items []services.CellUpsert) error {
+	return services.BulkUpsertCells(items)
 }
 
 func (a *App) BulkDeleteAttendance(cells []models.CellRef) (int, error) {

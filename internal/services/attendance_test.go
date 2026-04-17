@@ -86,6 +86,9 @@ func TestUpsertAttendance_RejectsCoefOutOfRange(t *testing.T) {
 	if _, err := UpsertAttendance(uid, "2026-04-01", 3.1, nil, ""); err == nil {
 		t.Error("expected error for coef>3")
 	}
+	if _, err := UpsertAttendance(uid, "2026-04-01", 0, nil, ""); err == nil {
+		t.Error("expected error for coef=0 (no phantom rows)")
+	}
 }
 
 func TestDeleteAttendance(t *testing.T) {
@@ -206,6 +209,96 @@ func TestGetWorksiteSummary(t *testing.T) {
 	}
 	if list[0].TotalSalary != 250000 {
 		t.Errorf("first.TotalSalary=%v want 250000", list[0].TotalSalary)
+	}
+}
+
+func TestGetTeamMonthSummaries_GroupsByUser(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+	u1 := seedTeamUser(t, "A")
+	u2 := seedTeamUser(t, "B")
+	// u3 has no attendance — must still appear with zeros.
+	u3 := seedTeamUser(t, "C")
+	ws := seedWorksite(t, "WS", 150000)
+
+	// u1: 2 days coef 1.0 + 1.5 at 150k -> salary 375000, 1 advance 50000.
+	if _, err := UpsertAttendance(u1, "2026-04-01", 1.0, &ws, ""); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := UpsertAttendance(u1, "2026-04-02", 1.5, &ws, ""); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := CreateAdvance(u1, "2026-04-03", 50000, ""); err != nil {
+		t.Fatal(err)
+	}
+	// u2: 1 day with no worksite (unpaid).
+	if _, err := UpsertAttendance(u2, "2026-04-01", 1.0, nil, ""); err != nil {
+		t.Fatal(err)
+	}
+
+	list, err := GetTeamMonthSummaries("2026-04")
+	if err != nil {
+		t.Fatalf("err=%v", err)
+	}
+	if len(list) != 3 {
+		t.Fatalf("want 3 users, got %d", len(list))
+	}
+	var a, b, c *int
+	for i, it := range list {
+		switch it.UserID {
+		case u1:
+			i := i
+			a = &i
+		case u2:
+			i := i
+			b = &i
+		case u3:
+			i := i
+			c = &i
+		}
+	}
+	if a == nil || b == nil || c == nil {
+		t.Fatalf("missing users: a=%v b=%v c=%v", a, b, c)
+	}
+	if list[*a].Summary.TotalSalary != 375000 {
+		t.Errorf("u1 salary=%v want 375000", list[*a].Summary.TotalSalary)
+	}
+	if list[*a].Summary.TotalAdvances != 50000 {
+		t.Errorf("u1 advances=%d want 50000", list[*a].Summary.TotalAdvances)
+	}
+	if list[*a].Summary.NetSalary != 325000 {
+		t.Errorf("u1 net=%v want 325000", list[*a].Summary.NetSalary)
+	}
+	if list[*b].Summary.PaidDays != 0 || list[*b].Summary.UnpaidDays != 1 {
+		t.Errorf("u2 paid/unpaid=%d/%d want 0/1", list[*b].Summary.PaidDays, list[*b].Summary.UnpaidDays)
+	}
+	if list[*c].Summary.TotalDays != 0 {
+		t.Errorf("u3 empty expected, got %+v", list[*c].Summary)
+	}
+}
+
+func TestGetTeamMonthSummaries_ExcludesSelf(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+	self, err := EnsureSelfUser("Me")
+	if err != nil {
+		t.Fatal(err)
+	}
+	u := seedTeamUser(t, "Team")
+	ws := seedWorksite(t, "WS", 100000)
+	if _, err := UpsertAttendance(self.ID, "2026-04-01", 1.0, &ws, ""); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := UpsertAttendance(u, "2026-04-01", 1.0, &ws, ""); err != nil {
+		t.Fatal(err)
+	}
+
+	list, err := GetTeamMonthSummaries("2026-04")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(list) != 1 || list[0].UserID != u {
+		t.Errorf("expected only team user, got %+v", list)
 	}
 }
 

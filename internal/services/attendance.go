@@ -65,7 +65,7 @@ func UpsertAttendance(userID int64, date string, coefficient float64, worksiteID
 	if err := ValidateDate(date); err != nil {
 		return models.Attendance{}, err
 	}
-	if coefficient < 0 || coefficient > 3.0 {
+	if coefficient <= 0 || coefficient > 3.0 {
 		return models.Attendance{}, fmt.Errorf("coefficient out of range: %.1f", coefficient)
 	}
 	res, err := db.Exec(`
@@ -159,6 +159,91 @@ func GetWorksiteSummary(userID int64, yearMonth string) ([]models.WorksiteSummar
 		items = append(items, s)
 	}
 	return items, rows.Err()
+}
+
+// GetTeamMonthSummaries returns per-user summary for every non-self user in one round-trip.
+// Replaces the N+1 pattern of calling GetMonthSummary per user.
+func GetTeamMonthSummaries(yearMonth string) ([]models.UserMonthSummary, error) {
+	if err := ValidateYearMonth(yearMonth); err != nil {
+		return nil, err
+	}
+	prefix := yearMonth + "%"
+
+	rows, err := db.Query(`
+		SELECT
+			u.id, u.name,
+			COALESCE(COUNT(a.id), 0),
+			COALESCE(SUM(a.coefficient), 0),
+			COALESCE(SUM(CASE WHEN COALESCE(w.daily_wage, 0) > 0 THEN 1 ELSE 0 END), 0),
+			COALESCE(SUM(CASE WHEN COALESCE(w.daily_wage, 0) > 0 THEN a.coefficient ELSE 0 END), 0),
+			COALESCE(SUM(CASE WHEN COALESCE(w.daily_wage, 0) > 0 THEN 0 ELSE 1 END), 0),
+			COALESCE(SUM(CASE WHEN COALESCE(w.daily_wage, 0) > 0 THEN 0 ELSE a.coefficient END), 0),
+			COALESCE(SUM(a.coefficient * COALESCE(w.daily_wage, 0)), 0)
+		FROM users u
+		LEFT JOIN attendance a ON a.user_id = u.id AND a.date LIKE ?
+		LEFT JOIN worksites w ON a.worksite_id = w.id
+		WHERE u.is_self = 0
+		GROUP BY u.id, u.name
+		ORDER BY u.id
+	`, prefix)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	results := make(map[int64]*models.UserMonthSummary)
+	var order []int64
+	for rows.Next() {
+		var uid int64
+		var uname string
+		var s models.MonthSummary
+		if err := rows.Scan(
+			&uid, &uname,
+			&s.TotalDays, &s.TotalCoefficient,
+			&s.PaidDays, &s.PaidCoefficient,
+			&s.UnpaidDays, &s.UnpaidCoefficient,
+			&s.TotalSalary,
+		); err != nil {
+			return nil, err
+		}
+		results[uid] = &models.UserMonthSummary{UserID: uid, UserName: uname, Summary: s}
+		order = append(order, uid)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	advRows, err := db.Query(`
+		SELECT user_id, COALESCE(SUM(amount), 0)
+		FROM advances
+		WHERE date LIKE ?
+		GROUP BY user_id
+	`, prefix)
+	if err != nil {
+		return nil, err
+	}
+	defer advRows.Close()
+	for advRows.Next() {
+		var uid int64
+		var total int64
+		if err := advRows.Scan(&uid, &total); err != nil {
+			return nil, err
+		}
+		if r, ok := results[uid]; ok {
+			r.Summary.TotalAdvances = total
+		}
+	}
+	if err := advRows.Err(); err != nil {
+		return nil, err
+	}
+
+	out := make([]models.UserMonthSummary, 0, len(order))
+	for _, uid := range order {
+		r := results[uid]
+		r.Summary.NetSalary = r.Summary.TotalSalary - float64(r.Summary.TotalAdvances)
+		out = append(out, *r)
+	}
+	return out, nil
 }
 
 func CopyPreviousDay(userID int64, targetDate string) (models.Attendance, error) {

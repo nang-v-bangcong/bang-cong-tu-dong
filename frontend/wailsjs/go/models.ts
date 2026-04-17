@@ -283,6 +283,40 @@ export namespace models {
 		}
 	}
 	
+	export class UserMonthSummary {
+	    userId: number;
+	    userName: string;
+	    summary: MonthSummary;
+	
+	    static createFrom(source: any = {}) {
+	        return new UserMonthSummary(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.userId = source["userId"];
+	        this.userName = source["userName"];
+	        this.summary = this.convertValues(source["summary"], MonthSummary);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class Worksite {
 	    id: number;
 	    name: string;
@@ -319,6 +353,31 @@ export namespace models {
 	        this.dailyWage = source["dailyWage"];
 	        this.totalCoeff = source["totalCoeff"];
 	        this.totalSalary = source["totalSalary"];
+	    }
+	}
+
+}
+
+export namespace services {
+	
+	export class CellUpsert {
+	    userId: number;
+	    date: string;
+	    coefficient: number;
+	    worksiteId?: number;
+	    note: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CellUpsert(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.userId = source["userId"];
+	        this.date = source["date"];
+	        this.coefficient = source["coefficient"];
+	        this.worksiteId = source["worksiteId"];
+	        this.note = source["note"];
 	    }
 	}
 

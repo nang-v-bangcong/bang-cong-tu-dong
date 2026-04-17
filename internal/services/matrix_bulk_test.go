@@ -211,6 +211,78 @@ func TestBulkDeleteAttendance_InvalidDate(t *testing.T) {
 	}
 }
 
+func TestBulkUpsertCells_AtomicMultiCoef(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+	ws := seedWorksite(t, "WS", 100000)
+	u1 := seedTeamUser(t, "A")
+	u2 := seedTeamUser(t, "B")
+
+	items := []CellUpsert{
+		{UserID: u1, Date: "2026-04-01", Coefficient: 1.0, WorksiteID: &ws},
+		{UserID: u1, Date: "2026-04-02", Coefficient: 0.5, WorksiteID: &ws},
+		{UserID: u2, Date: "2026-04-01", Coefficient: 1.5, WorksiteID: nil, Note: "extra"},
+	}
+	if err := BulkUpsertCells(items); err != nil {
+		t.Fatal(err)
+	}
+
+	m, _ := GetTeamMonthMatrix("2026-04")
+	var a, b *models.MatrixRow
+	for i := range m.Rows {
+		switch m.Rows[i].UserID {
+		case u1:
+			a = &m.Rows[i]
+		case u2:
+			b = &m.Rows[i]
+		}
+	}
+	if a == nil || b == nil {
+		t.Fatal("rows missing")
+	}
+	if a.Cells[1].Coefficient != 1.0 || a.Cells[2].Coefficient != 0.5 {
+		t.Errorf("u1 coefs wrong: %+v", a.Cells)
+	}
+	if b.Cells[1].Coefficient != 1.5 || b.Cells[1].WorksiteID != nil || b.Cells[1].Note != "extra" {
+		t.Errorf("u2 cell wrong: %+v", b.Cells[1])
+	}
+}
+
+func TestBulkUpsertCells_RejectsBadItem_RollbackAll(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+	u := seedTeamUser(t, "U")
+
+	items := []CellUpsert{
+		{UserID: u, Date: "2026-04-01", Coefficient: 1.0},
+		{UserID: u, Date: "2026-04-02", Coefficient: 5.0}, // out of range
+	}
+	if err := BulkUpsertCells(items); err == nil {
+		t.Fatal("expected error")
+	}
+	m, _ := GetTeamMonthMatrix("2026-04")
+	if len(m.Rows) > 0 && m.Rows[0].Cells[1].AttendanceID != 0 {
+		t.Error("first cell should not have been committed when batch fails")
+	}
+}
+
+func TestBulkUpsertCells_RejectsCoefZero(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+	u := seedTeamUser(t, "U")
+	if err := BulkUpsertCells([]CellUpsert{{UserID: u, Date: "2026-04-01", Coefficient: 0}}); err == nil {
+		t.Error("expected error for coef=0")
+	}
+}
+
+func TestBulkUpsertCells_EmptyNoop(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+	if err := BulkUpsertCells(nil); err != nil {
+		t.Errorf("nil: %v", err)
+	}
+}
+
 // Clearing worksite (wsID=nil) on empty cells must NOT create coef=1 rows.
 func TestBulkUpsertWorksite_NilOnEmptyCells_NoInsert(t *testing.T) {
 	cleanup := setupTestDB(t)
