@@ -69,6 +69,14 @@ func runMigrations(db *sql.DB) error {
 	// Column migrations
 	addColumnIfMissing(db, "worksites", "daily_wage", "INTEGER NOT NULL DEFAULT 0")
 
+	// Guard against name collisions for users: app-layer checks had a TOCTOU
+	// window. Only create the UNIQUE index if the current data is already clean
+	// so legacy DBs with duplicates don't fail to migrate.
+	var dupes int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM (SELECT name FROM users GROUP BY name HAVING COUNT(*) > 1)`).Scan(&dupes); err == nil && dupes == 0 {
+		db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_name_unique ON users(name)`)
+	}
+
 	return nil
 }
 

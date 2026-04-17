@@ -44,7 +44,7 @@ export function TeamPage() {
   const [today, setToday] = useState('')
 
   const loadUsers = useCallback(async () => {
-    const mapped = mapUsers(await GetTeamUsers() as any[])
+    const mapped = mapUsers(await GetTeamUsers())
     setUsers(mapped)
     return mapped
   }, [])
@@ -56,9 +56,9 @@ export function TeamPage() {
         GetMonthAttendance(u.id, yearMonth), GetMonthSummary(u.id, yearMonth),
         GetWorksites(), GetToday(), GetWorksiteSummary(u.id, yearMonth),
       ])
-      setRecords(mapAttendance(att as any[]))
+      setRecords(mapAttendance(att))
       setSummary(sum as Summary)
-      setWorksites(mapWorksites(ws as any[]))
+      setWorksites(mapWorksites(ws))
       setWsBreakdown((wsb || []) as WsSummary[])
       setToday(td)
     } catch { toast.error('Lỗi tải dữ liệu') } finally { setLoading(false) }
@@ -92,7 +92,7 @@ export function TeamPage() {
 
   const handleBulkAddPerson = async (names: string[]) => {
     try {
-      const res = await BulkCreateUsers(names) as any
+      const res = await BulkCreateUsers(names)
       const created = res.created?.length ?? 0
       const skipped = res.skipped?.length ?? 0
       await reload()

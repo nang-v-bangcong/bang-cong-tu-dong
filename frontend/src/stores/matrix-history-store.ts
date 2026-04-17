@@ -37,7 +37,7 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
     const top = s.past[s.past.length - 1]
     let past = s.past
     // Merge rapid re-edits to the same single cell (keeps undo chunks sane).
-    if (top && e.ts - top.ts < MERGE_MS && sameCell(top.after, e.before)) {
+    if (top && top.ym === e.ym && e.ts - top.ts < MERGE_MS && sameCell(top.after, e.before)) {
       past = [...s.past.slice(0, -1), { ...top, after: e.after, ts: e.ts }]
     } else {
       past = [...s.past, e]

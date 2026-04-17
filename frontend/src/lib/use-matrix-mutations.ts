@@ -108,13 +108,21 @@ export function useMatrixMutations({ yearMonth, matrix, reload }: Opts) {
     try {
       const keys: BulkCells = items.map((i) => ({ userId: i.userId, day: i.day }))
       await record(keys, async () => {
-        const payload: services.CellUpsert[] = items.map((it) => ({
-          userId: it.userId,
-          date: dateOf(ym, it.day),
-          coefficient: it.coef,
-          worksiteId: undefined,
-          note: '',
-        }))
+        // Preserve existing worksite/note on occupied cells so paste only overwrites coef.
+        const current = matrixRef.current
+        const byUser = new Map<number, models.MatrixRow>()
+        if (current) for (const r of current.rows) byUser.set(r.userId, r)
+        const payload: services.CellUpsert[] = items.map((it) => {
+          const existing = byUser.get(it.userId)?.cells?.[it.day]
+          const keepWs = existing?.attendanceId ? existing.worksiteId : undefined
+          return {
+            userId: it.userId,
+            date: dateOf(ym, it.day),
+            coefficient: it.coef,
+            worksiteId: keepWs ?? undefined,
+            note: existing?.attendanceId ? (existing.note ?? '') : '',
+          }
+        })
         await BulkUpsertCells(payload)
       })
     } catch { toast.error('Lỗi dán dữ liệu') }
@@ -165,15 +173,15 @@ export function useMatrixMutations({ yearMonth, matrix, reload }: Opts) {
     } catch { toast.error('Lỗi lưu ghi chú') }
   }, [ym, reload])
 
-  const runUndo = useCallback(async (entry: { before: CellSnap[] }) => {
-    await applySnapshot(ym, entry.before)
+  const runUndo = useCallback(async (entry: { ym: string; before: CellSnap[] }) => {
+    await applySnapshot(entry.ym, entry.before)
     await reload()
-  }, [ym, reload])
+  }, [reload])
 
-  const runRedo = useCallback(async (entry: { after: CellSnap[] }) => {
-    await applySnapshot(ym, entry.after)
+  const runRedo = useCallback(async (entry: { ym: string; after: CellSnap[] }) => {
+    await applySnapshot(entry.ym, entry.after)
     await reload()
-  }, [ym, reload])
+  }, [reload])
 
   return {
     onCellSave, onBulkAssign, onBulkCoef, onBulkDelete,

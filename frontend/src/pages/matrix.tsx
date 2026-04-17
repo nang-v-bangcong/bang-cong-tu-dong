@@ -45,7 +45,7 @@ export function MatrixPage() {
         GetTeamMonthMatrix(yearMonth), GetWorksites(), GetToday(),
       ])
       setMatrix(m)
-      setWorksites(mapWorksites(ws as any[]))
+      setWorksites(mapWorksites(ws))
       setToday(td)
       return m
     } catch {
@@ -86,7 +86,7 @@ export function MatrixPage() {
 
   const handleBulkAddPerson = useCallback(async (names: string[]) => {
     try {
-      const res = await BulkCreateUsers(names) as any
+      const res = await BulkCreateUsers(names)
       const c = res.created?.length ?? 0
       const s = res.skipped?.length ?? 0
       if (c > 0) toast.success(`Đã thêm ${c} người${s > 0 ? ` (bỏ qua ${s} trùng)` : ''}`)

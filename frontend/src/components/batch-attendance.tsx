@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Users, X, Check } from 'lucide-react'
 import { type Worksite, mapWorksites, formatWon } from '../lib/utils'
-import { GetWorksites, GetToday, UpsertAttendance } from '../../wailsjs/go/main/App'
+import { GetWorksites, GetToday, BulkUpsertCells } from '../../wailsjs/go/main/App'
+import { type services } from '../../wailsjs/go/models'
 
 interface User { id: number; name: string }
 
@@ -31,7 +32,7 @@ export function BatchAttendance({ open, users, onClose, onDone }: Props) {
   useEffect(() => {
     if (!open) return
     Promise.all([GetWorksites(), GetToday()]).then(([ws, td]) => {
-      setWorksites(mapWorksites(ws as any[]))
+      setWorksites(mapWorksites(ws))
       setToday(td as string)
       setDate(td as string)
     })
@@ -52,14 +53,19 @@ export function BatchAttendance({ open, users, onClose, onDone }: Props) {
     if (toSave.length === 0) return
     setSaving(true)
     try {
-      await Promise.all(
-        toSave.map((r) => UpsertAttendance(r.userId, date, r.coefficient, wsId as any, ''))
-      )
+      const payload: services.CellUpsert[] = toSave.map((r) => ({
+        userId: r.userId,
+        date,
+        coefficient: r.coefficient,
+        worksiteId: wsId ?? undefined,
+        note: '',
+      }))
+      await BulkUpsertCells(payload)
       toast.success(`Đã chấm công ${toSave.length} người`)
       onDone()
       onClose()
-    } catch {
-      toast.error('Lỗi chấm công')
+    } catch (e: any) {
+      toast.error(String(e?.message ?? e ?? 'Lỗi chấm công'))
     } finally {
       setSaving(false)
     }

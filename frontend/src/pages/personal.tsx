@@ -42,9 +42,9 @@ export function PersonalPage() {
         GetMonthAttendance(u.id, yearMonth), GetMonthSummary(u.id, yearMonth),
         GetWorksites(), GetToday(), GetWorksiteSummary(u.id, yearMonth),
       ])
-      setRecords(mapAttendance(att as any[]))
+      setRecords(mapAttendance(att))
       setSummary(sum as Summary)
-      setWorksites(mapWorksites(ws as any[]))
+      setWorksites(mapWorksites(ws))
       setWsBreakdown((wsb || []) as WsSummary[])
       setToday(td)
     } catch { toast.error('Lỗi tải dữ liệu') } finally { setLoading(false) }

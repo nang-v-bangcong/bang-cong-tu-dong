@@ -20,20 +20,20 @@ export function snapshotCells(
 
 // Apply a list of cell snapshots: upsert when state is present, delete when null.
 export async function applySnapshot(ym: string, snaps: CellSnap[]): Promise<void> {
-  const toDelete: Array<{ userId: number; date: string }> = []
+  const toDelete: models.CellRef[] = []
   const toUpsert: CellSnap[] = []
   for (const s of snaps) {
     if (s.state) toUpsert.push(s)
-    else toDelete.push({ userId: s.userId, date: dateOf(ym, s.day) })
+    else toDelete.push({ userId: s.userId, date: dateOf(ym, s.day) } as models.CellRef)
   }
   for (const s of toUpsert) {
     await UpsertAttendance(
       s.userId,
       dateOf(ym, s.day),
       s.state!.coef,
-      s.state!.wsID as any,
+      s.state!.wsID,
       '',
     )
   }
-  if (toDelete.length > 0) await BulkDeleteAttendance(toDelete as any)
+  if (toDelete.length > 0) await BulkDeleteAttendance(toDelete)
 }

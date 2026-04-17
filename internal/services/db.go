@@ -100,8 +100,9 @@ func BackupDB(destPath string) error {
 }
 
 // RestoreDB replaces the active DB with the file at srcPath.
-// The global db is only swapped after the new file is safely in place and
-// can be opened; on any failure the existing db remains usable.
+// The staged file is validated (open + ping) before the rename, so a corrupt
+// backup never clobbers the live DB. On any post-rename failure the global db
+// is still reopened against the new file to avoid nil-pointer panics.
 func RestoreDB(srcPath string) error {
 	destPath, err := GetDBPath()
 	if err != nil {
@@ -111,36 +112,42 @@ func RestoreDB(srcPath string) error {
 	if err != nil {
 		return err
 	}
-	// Stage the new file beside the destination, then atomic-rename.
 	tmpPath := destPath + ".restore.tmp"
 	if err := os.WriteFile(tmpPath, data, 0644); err != nil {
 		return err
 	}
+	defer os.Remove(tmpPath) // no-op once renamed
+
+	// Validate the staged file opens as a SQLite DB before we touch the live one.
+	tmpConnStr := "file:" + tmpPath + "?_pragma=foreign_keys(1)"
+	testDB, err := sql.Open("sqlite", tmpConnStr)
+	if err != nil {
+		return err
+	}
+	if err := testDB.Ping(); err != nil {
+		_ = testDB.Close()
+		return err
+	}
+	_ = testDB.Close()
 
 	connStr := "file:" + destPath + "?_pragma=journal_mode(wal)&_pragma=foreign_keys(1)"
 
-	// Close current handle so Windows lets us replace the file.
 	if db != nil {
 		_ = db.Close()
 	}
-	if err := os.Rename(tmpPath, destPath); err != nil {
-		// Best-effort reopen of the original DB so the app keeps working.
-		db, _ = sql.Open("sqlite", connStr)
-		_ = os.Remove(tmpPath)
-		return err
+	renameErr := os.Rename(tmpPath, destPath)
+	// Always try to reopen db — either the new file (on success) or the original (on rename failure).
+	reopened, openErr := sql.Open("sqlite", connStr)
+	if openErr == nil {
+		if pingErr := reopened.Ping(); pingErr == nil {
+			db = reopened
+		} else {
+			_ = reopened.Close()
+		}
 	}
-
-	newDB, err := sql.Open("sqlite", connStr)
-	if err != nil {
-		db = nil
-		return err
+	if renameErr != nil {
+		return renameErr
 	}
-	if err := newDB.Ping(); err != nil {
-		_ = newDB.Close()
-		db = nil
-		return err
-	}
-	db = newDB
 	return nil
 }
 

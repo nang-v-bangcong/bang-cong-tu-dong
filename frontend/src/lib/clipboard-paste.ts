@@ -44,6 +44,6 @@ export function coerceCoef(raw: string): number | null {
   if (!/^-?\d*\.?\d+$/.test(cleaned)) return null
   const n = parseFloat(cleaned)
   if (!isFinite(n)) return null
-  if (n < 0 || n > 3) return null
+  if (n <= 0 || n > 3) return null
   return n
 }

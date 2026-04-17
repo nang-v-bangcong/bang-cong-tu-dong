@@ -32,25 +32,30 @@ export function AddPersonDialog({ open, onClose, onSave, onBulkSave }: Props) {
 
   if (!open) return null
 
+  const resetAndClose = () => {
+    setName('')
+    setRaw('')
+    setMode('single')
+    onClose()
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (mode === 'single') {
       if (!name.trim()) return
       onSave(name.trim())
-      setName('')
-      onClose()
+      resetAndClose()
       return
     }
     if (names.length === 0) return
     onBulkSave(names)
-    setRaw('')
-    onClose()
+    resetAndClose()
   }
 
   const inputCls = 'w-full px-3 py-2 text-sm bg-transparent rounded-[var(--radius)]'
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50" onClick={onClose}
+    <div className="fixed inset-0 flex items-center justify-center z-50" onClick={resetAndClose}
       style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
       <form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}
         className="w-[420px] p-6" style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)' }}>
@@ -92,7 +97,7 @@ export function AddPersonDialog({ open, onClose, onSave, onBulkSave }: Props) {
         )}
 
         <div className="flex gap-2 mt-4">
-          <button type="button" onClick={onClose}
+          <button type="button" onClick={resetAndClose}
             className="flex-1 py-2 text-sm rounded-[var(--radius)] hover:bg-[var(--bg-hover)] transition-colors"
             style={{ border: '1px solid var(--border)' }}>Huỷ</button>
           <button type="submit"

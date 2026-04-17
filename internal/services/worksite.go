@@ -42,14 +42,23 @@ func UpdateWorksite(id int64, name string, dailyWage int64) error {
 }
 
 func DeleteWorksite(id int64) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	var inUse int
-	if err := db.QueryRow(`SELECT COUNT(*) FROM attendance WHERE worksite_id = ?`, id).Scan(&inUse); err != nil {
+	if err := tx.QueryRow(`SELECT COUNT(*) FROM attendance WHERE worksite_id = ?`, id).Scan(&inUse); err != nil {
 		return err
 	}
 	if inUse > 0 {
 		return fmt.Errorf("đang dùng ở %d ô chấm công, cần đổi công trường trước khi xóa", inUse)
 	}
-	if _, err := db.Exec(`DELETE FROM worksites WHERE id = ?`, id); err != nil {
+	if _, err := tx.Exec(`DELETE FROM worksites WHERE id = ?`, id); err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 	WriteAudit("delete", "worksite", id, fmt.Sprintf("Xóa nơi làm việc #%d", id))

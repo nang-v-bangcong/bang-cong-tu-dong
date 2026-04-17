@@ -8,7 +8,7 @@ describe('coerceCoef', () => {
   })
   it('parses integers', () => {
     expect(coerceCoef('1')).toBe(1)
-    expect(coerceCoef('0')).toBe(0)
+    expect(coerceCoef('2')).toBe(2)
   })
   it('parses decimals with dot', () => {
     expect(coerceCoef('1.5')).toBe(1.5)
@@ -23,6 +23,7 @@ describe('coerceCoef', () => {
   })
   it('rejects out-of-range', () => {
     expect(coerceCoef('-1')).toBeNull()
+    expect(coerceCoef('0')).toBeNull()
     expect(coerceCoef('3.1')).toBeNull()
     expect(coerceCoef('100')).toBeNull()
   })

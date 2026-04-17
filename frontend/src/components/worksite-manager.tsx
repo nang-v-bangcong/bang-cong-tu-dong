@@ -21,7 +21,7 @@ export function WorksiteManager({ open, onClose }: Props) {
 
   const load = async () => {
     try {
-      setSites(mapWorksites(await GetWorksites() as any[]))
+      setSites(mapWorksites(await GetWorksites()))
     } catch { toast.error('Lỗi tải nơi làm việc') }
   }
 

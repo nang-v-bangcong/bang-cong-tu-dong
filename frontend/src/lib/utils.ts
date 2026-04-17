@@ -18,16 +18,18 @@ export interface WsSummary { worksiteId: number | null; worksiteName: string; da
 
 // --- Mappers (avoid repeated `as any` casts) ---
 
-export function mapAttendance(raw: any[]): Attendance[] {
-  return (raw || []).map((a) => ({ id: a.id, date: a.date, coefficient: a.coefficient, worksiteId: a.worksiteId, note: a.note }))
+type RawList<T> = ReadonlyArray<T> | null | undefined
+
+export function mapAttendance(raw: RawList<any>): Attendance[] {
+  return (raw ?? []).map((a) => ({ id: a.id, date: a.date, coefficient: a.coefficient, worksiteId: a.worksiteId, note: a.note }))
 }
 
-export function mapWorksites(raw: any[]): Worksite[] {
-  return (raw || []).map((w) => ({ id: w.id, name: w.name, dailyWage: w.dailyWage }))
+export function mapWorksites(raw: RawList<any>): Worksite[] {
+  return (raw ?? []).map((w) => ({ id: w.id, name: w.name, dailyWage: w.dailyWage }))
 }
 
-export function mapUsers(raw: any[]): User[] {
-  return (raw || []).map((u) => ({ id: u.id, name: u.name }))
+export function mapUsers(raw: RawList<any>): User[] {
+  return (raw ?? []).map((u) => ({ id: u.id, name: u.name }))
 }
 
 // --- Formatters ---
