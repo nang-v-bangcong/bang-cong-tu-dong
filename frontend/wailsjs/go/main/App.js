@@ -6,8 +6,24 @@ export function BackupDB() {
   return window['go']['main']['App']['BackupDB']();
 }
 
+export function BulkCreateUsers(arg1) {
+  return window['go']['main']['App']['BulkCreateUsers'](arg1);
+}
+
+export function BulkDeleteAttendance(arg1) {
+  return window['go']['main']['App']['BulkDeleteAttendance'](arg1);
+}
+
+export function BulkUpsertCell(arg1, arg2, arg3) {
+  return window['go']['main']['App']['BulkUpsertCell'](arg1, arg2, arg3);
+}
+
 export function BulkUpsertWorksite(arg1, arg2) {
   return window['go']['main']['App']['BulkUpsertWorksite'](arg1, arg2);
+}
+
+export function CopyDayForAll(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['CopyDayForAll'](arg1, arg2, arg3, arg4);
 }
 
 export function CopyPreviousDay(arg1, arg2) {
@@ -46,8 +62,16 @@ export function EnsureSelfUser(arg1) {
   return window['go']['main']['App']['EnsureSelfUser'](arg1);
 }
 
+export function ExportMatrixExcel(arg1) {
+  return window['go']['main']['App']['ExportMatrixExcel'](arg1);
+}
+
 export function ExportPDF(arg1, arg2, arg3) {
   return window['go']['main']['App']['ExportPDF'](arg1, arg2, arg3);
+}
+
+export function FillDayForAllUsers(arg1, arg2, arg3, arg4, arg5) {
+  return window['go']['main']['App']['FillDayForAllUsers'](arg1, arg2, arg3, arg4, arg5);
 }
 
 export function GetAuditLog(arg1, arg2) {

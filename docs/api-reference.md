@@ -71,6 +71,17 @@ Gán công trường hàng loạt cho danh sách ô `cells`.
 | `BackupDB()` | Sao lưu SQLite |
 | `RestoreDB()` | Khôi phục SQLite |
 | `GetAuditLog(limit, offset)` | Lịch sử thay đổi |
+| `CreateTeamUser(name)` | Thêm 1 thành viên mới |
+| `BulkCreateUsers(names)` | Thêm nhiều thành viên (bulk paste) |
+| `BulkUpsertWorksite(cells, worksiteID)` | Gán công trường hàng loạt |
+| `BulkUpsertCell(cells)` | Chấm hàng loạt nhiều ô |
+| `BulkDeleteAttendance(cells)` | Xóa hàng loạt nhiều ô |
+| `FillDayForAllUsers(date, coefficient, worksiteID)` | Điền hệ số 1 ngày cho toàn nhóm |
+| `CopyDayForAll(fromDate, toDate, overwrite)` | Copy ngày → ngày cho toàn nhóm |
+| `UpsertDayNote(yearMonth, day, note)` | Tạo/cập nhật ghi chú ngày |
+| `GetDayNotes(yearMonth)` | Lấy ghi chú tất cả ngày trong tháng |
+| `ExportMatrixExcel(yearMonth, path)` | Xuất ma trận ra file .xlsx |
+| `GetToday()` | Trả về ngày hôm nay (server-side) |
 
 ---
 

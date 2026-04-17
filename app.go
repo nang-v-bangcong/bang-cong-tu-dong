@@ -69,6 +69,10 @@ func (a *App) DeleteTeamUser(id int64) error {
 	return services.DeleteTeamUser(id)
 }
 
+func (a *App) BulkCreateUsers(names []string) (models.BulkCreateResult, error) {
+	return services.BulkCreateUsers(names)
+}
+
 // --- Worksite ---
 
 func (a *App) GetWorksites() ([]models.Worksite, error) {
@@ -135,6 +139,22 @@ func (a *App) BulkUpsertWorksite(cells []models.CellRef, worksiteID *int64) erro
 	return services.BulkUpsertWorksite(cells, worksiteID)
 }
 
+func (a *App) BulkUpsertCell(cells []models.CellRef, coef *float64, worksiteID *int64) error {
+	return services.BulkUpsertCell(cells, coef, worksiteID)
+}
+
+func (a *App) BulkDeleteAttendance(cells []models.CellRef) (int, error) {
+	return services.BulkDeleteAttendance(cells)
+}
+
+func (a *App) FillDayForAllUsers(yearMonth string, day int, coef float64, worksiteID *int64, overwrite bool) (int, error) {
+	return services.FillDayForAllUsers(yearMonth, day, coef, worksiteID, overwrite)
+}
+
+func (a *App) CopyDayForAll(yearMonth string, srcDay, dstDay int, overwrite bool) (int, error) {
+	return services.CopyDayForAll(yearMonth, srcDay, dstDay, overwrite)
+}
+
 // --- Advance ---
 
 func (a *App) GetMonthAdvances(userID int64, yearMonth string) ([]models.Advance, error) {
@@ -157,4 +177,10 @@ func (a *App) DeleteAdvance(id int64) error {
 
 func (a *App) GetAuditLog(limit int, offset int) ([]models.AuditLog, error) {
 	return services.GetAuditLog(limit, offset)
+}
+
+// --- Export ---
+
+func (a *App) ExportMatrixExcel(yearMonth string) (string, error) {
+	return services.ExportMatrixExcel(a.ctx, yearMonth)
 }

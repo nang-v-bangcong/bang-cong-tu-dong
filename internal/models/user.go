@@ -7,3 +7,10 @@ type User struct {
 	IsSelf    bool   `json:"isSelf"`    // true = personal tab user
 	CreatedAt string `json:"createdAt"`
 }
+
+// BulkCreateResult captures outcome of a batch user creation:
+// which rows were inserted and which names were skipped as duplicates.
+type BulkCreateResult struct {
+	Created []User   `json:"created"`
+	Skipped []string `json:"skipped"`
+}

@@ -4,7 +4,15 @@ import {models} from '../models';
 
 export function BackupDB():Promise<string>;
 
+export function BulkCreateUsers(arg1:Array<string>):Promise<models.BulkCreateResult>;
+
+export function BulkDeleteAttendance(arg1:Array<models.CellRef>):Promise<number>;
+
+export function BulkUpsertCell(arg1:Array<models.CellRef>,arg2:any,arg3:any):Promise<void>;
+
 export function BulkUpsertWorksite(arg1:Array<models.CellRef>,arg2:any):Promise<void>;
+
+export function CopyDayForAll(arg1:string,arg2:number,arg3:number,arg4:boolean):Promise<number>;
 
 export function CopyPreviousDay(arg1:number,arg2:string):Promise<models.Attendance>;
 
@@ -24,7 +32,11 @@ export function DeleteWorksite(arg1:number):Promise<void>;
 
 export function EnsureSelfUser(arg1:string):Promise<models.User>;
 
+export function ExportMatrixExcel(arg1:string):Promise<string>;
+
 export function ExportPDF(arg1:number,arg2:string,arg3:string):Promise<string>;
+
+export function FillDayForAllUsers(arg1:string,arg2:number,arg3:number,arg4:any,arg5:boolean):Promise<number>;
 
 export function GetAuditLog(arg1:number,arg2:number):Promise<Array<models.AuditLog>>;
 
