@@ -6,6 +6,13 @@ import (
 	"fmt"
 )
 
+func overwriteLabel(overwrite bool) string {
+	if overwrite {
+		return "ghi đè"
+	}
+	return "giữ ô có sẵn"
+}
+
 // FillDayForAllUsers stamps the given coef (and optional worksite) into one day
 // for every team user. overwrite=false keeps existing cells untouched.
 // Returns the number of cells actually created/updated.
@@ -74,12 +81,8 @@ func FillDayForAllUsers(yearMonth string, day int, coef float64, worksiteID *int
 		return 0, err
 	}
 	if affected > 0 {
-		mode := "giữ ô có sẵn"
-		if overwrite {
-			mode = "ghi đè"
-		}
 		WriteAudit("fill_day", "attendance", int64(affected),
-			fmt.Sprintf("Điền ngày %s hệ số %.1f (%s): %d ô", date, coef, mode, affected))
+			fmt.Sprintf("Điền ngày %s hệ số %.1f (%s): %d ô", date, coef, overwriteLabel(overwrite), affected))
 	}
 	return affected, nil
 }
@@ -177,12 +180,8 @@ func CopyDayForAll(yearMonth string, srcDay, dstDay int, overwrite bool) (int, e
 		return 0, err
 	}
 	if affected > 0 {
-		mode := "giữ ô có sẵn"
-		if overwrite {
-			mode = "ghi đè"
-		}
 		WriteAudit("copy_day", "attendance", int64(affected),
-			fmt.Sprintf("Sao chép %s → %s (%s): %d ô", srcDate, dstDate, mode, affected))
+			fmt.Sprintf("Sao chép %s → %s (%s): %d ô", srcDate, dstDate, overwriteLabel(overwrite), affected))
 	}
 	return affected, nil
 }

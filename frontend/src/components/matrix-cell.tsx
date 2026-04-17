@@ -47,12 +47,9 @@ function MatrixCellInner(props: Props) {
 
   // Auto-open editor when focused and parent dispatches a signal (e.g., user typed a number)
   useEffect(() => {
-    if (startEditingSignal !== signalRef.current && isFocused) {
-      signalRef.current = startEditingSignal
-      setEditing(true)
-    } else {
-      signalRef.current = startEditingSignal
-    }
+    const changed = startEditingSignal !== signalRef.current
+    signalRef.current = startEditingSignal
+    if (changed && isFocused) setEditing(true)
   }, [startEditingSignal, isFocused])
 
   useEffect(() => {
