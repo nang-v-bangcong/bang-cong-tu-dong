@@ -1,0 +1,178 @@
+import { useCallback, useRef } from 'react'
+import { toast } from 'sonner'
+import { dateOf } from './matrix-utils'
+import { snapshotCells, applySnapshot } from './matrix-history'
+import { useHistoryStore, type CellSnap } from '../stores/matrix-history-store'
+import { type models } from '../../wailsjs/go/models'
+import {
+  UpsertAttendance, UpsertDayNote,
+  BulkUpsertWorksite, BulkUpsertCell, BulkDeleteAttendance,
+  FillDayForAllUsers, CopyDayForAll,
+} from '../../wailsjs/go/main/App'
+
+export type BulkCells = Array<{ userId: number; day: number }>
+
+interface Opts {
+  yearMonth: string
+  matrix: models.TeamMatrix | null
+  reload: () => Promise<models.TeamMatrix | null>
+}
+
+export function useMatrixMutations({ yearMonth, matrix, reload }: Opts) {
+  const matrixRef = useRef(matrix)
+  matrixRef.current = matrix
+  const push = useHistoryStore((s) => s.push)
+
+  const ym = yearMonth
+
+  const record = useCallback(async (keys: BulkCells, mutate: () => Promise<void>) => {
+    const snapBefore = matrixRef.current ? snapshotCells(matrixRef.current, keys) : []
+    await mutate()
+    const fresh = await reload()
+    const snapAfter = fresh ? snapshotCells(fresh, keys) : snapBefore.map((s) => ({ ...s, state: null }))
+    push({ ym, before: snapBefore, after: snapAfter, ts: Date.now() })
+  }, [ym, reload, push])
+
+  const recordFromKeys = useCallback(async (
+    beforeKeys: BulkCells,
+    mutate: () => Promise<void>,
+    afterKeys?: BulkCells,
+  ) => {
+    const snapBefore = matrixRef.current ? snapshotCells(matrixRef.current, beforeKeys) : []
+    await mutate()
+    const fresh = await reload()
+    const keysToCapture = afterKeys ?? beforeKeys
+    const snapAfter = fresh ? snapshotCells(fresh, keysToCapture) : []
+    // Merge both key sets so undo/redo covers all affected cells
+    const union = new Map<string, CellSnap>()
+    const latestAfter = fresh ? snapshotCells(fresh, beforeKeys) : snapBefore.map((s) => ({ ...s, state: null }))
+    for (const s of snapBefore) union.set(`${s.userId}:${s.day}`, s)
+    for (const s of latestAfter) union.set(`${s.userId}:${s.day}`, { ...s })
+    push({ ym, before: snapBefore, after: Array.from(union.values()).map((s) => {
+      const a = snapAfter.find((x) => x.userId === s.userId && x.day === s.day)
+      return a ?? s
+    }), ts: Date.now() })
+  }, [ym, reload, push])
+
+  const onCellSave = useCallback(async (userId: number, day: number, coef: number, wsID: number | null) => {
+    try {
+      await record([{ userId, day }], async () => {
+        await UpsertAttendance(userId, dateOf(ym, day), coef, wsID as any, '')
+      })
+    } catch { toast.error('Lỗi lưu ô') }
+  }, [ym, record])
+
+  const onBulkAssign = useCallback(async (cells: BulkCells, wsID: number | null) => {
+    try {
+      await record(cells, async () => {
+        await BulkUpsertWorksite(cells.map((c) => ({ userId: c.userId, date: dateOf(ym, c.day) })) as any, wsID as any)
+      })
+      toast.success(`Đã gán ${cells.length} ô`)
+    } catch { toast.error('Lỗi gán công trường') }
+  }, [ym, record])
+
+  const onBulkCoef = useCallback(async (cells: BulkCells, coef: number) => {
+    try {
+      await record(cells, async () => {
+        await BulkUpsertCell(cells.map((c) => ({ userId: c.userId, date: dateOf(ym, c.day) })) as any, coef as any, null as any)
+      })
+      toast.success(`Đã đặt hệ số ${coef} cho ${cells.length} ô`)
+    } catch { toast.error('Lỗi cập nhật hệ số') }
+  }, [ym, record])
+
+  const onBulkDelete = useCallback(async (cells: BulkCells) => {
+    try {
+      await record(cells, async () => {
+        await BulkDeleteAttendance(cells.map((c) => ({ userId: c.userId, date: dateOf(ym, c.day) })) as any)
+      })
+      toast.success(`Đã xóa ${cells.length} ô`)
+    } catch { toast.error('Lỗi xóa') }
+  }, [ym, record])
+
+  const onFillRange = useCallback(async (cells: BulkCells, coef: number) => {
+    if (cells.length === 0) return
+    try {
+      await record(cells, async () => {
+        await BulkUpsertCell(cells.map((c) => ({ userId: c.userId, date: dateOf(ym, c.day) })) as any, coef as any, null as any)
+      })
+      toast.success(`Đã điền ${cells.length} ô`)
+    } catch { toast.error('Lỗi điền dải') }
+  }, [ym, record])
+
+  const onPasteGrid = useCallback(async (items: Array<{ userId: number; day: number; coef: number }>) => {
+    if (items.length === 0) return
+    try {
+      const keys: BulkCells = items.map((i) => ({ userId: i.userId, day: i.day }))
+      await record(keys, async () => {
+        const groups = new Map<number, Array<{ userId: number; date: string }>>()
+        for (const it of items) {
+          const arr = groups.get(it.coef) ?? []
+          arr.push({ userId: it.userId, date: dateOf(ym, it.day) })
+          groups.set(it.coef, arr)
+        }
+        for (const [coef, refs] of groups) await BulkUpsertCell(refs as any, coef as any, null as any)
+      })
+    } catch { toast.error('Lỗi dán dữ liệu') }
+  }, [ym, record])
+
+  const onFillDay = useCallback(async (day: number, coef: number, wsID: number | null) => {
+    const current = matrixRef.current
+    const keys: BulkCells = current ? current.rows.map((r) => ({ userId: r.userId, day })) : []
+    try {
+      await recordFromKeys(keys, async () => {
+        const n = await FillDayForAllUsers(ym, day, coef, wsID as any, false)
+        toast.success(n > 0 ? `Đã chấm ${n} người ngày ${day}` : `Ngày ${day} đã đủ`)
+      })
+    } catch { toast.error('Lỗi chấm công theo ngày') }
+  }, [ym, recordFromKeys])
+
+  const onCopyDayConfirm = useCallback(async (srcDay: number, dstDay: number, overwrite: boolean) => {
+    const current = matrixRef.current
+    const keys: BulkCells = current ? current.rows.map((r) => ({ userId: r.userId, day: dstDay })) : []
+    try {
+      await recordFromKeys(keys, async () => {
+        const n = await CopyDayForAll(ym, srcDay, dstDay, overwrite)
+        toast.success(n > 0 ? `Đã sao chép ${n} ô → ngày ${dstDay}` : 'Không có ô nào được sao chép')
+      })
+    } catch (e: any) {
+      toast.error(String(e?.message ?? e ?? 'Lỗi sao chép'))
+    }
+  }, [ym, recordFromKeys])
+
+  const onCopyPrev = useCallback(async (day: number) => {
+    if (day <= 1) return
+    const current = matrixRef.current
+    const keys: BulkCells = current ? current.rows.map((r) => ({ userId: r.userId, day })) : []
+    try {
+      await recordFromKeys(keys, async () => {
+        const n = await CopyDayForAll(ym, day - 1, day, false)
+        toast.success(n > 0 ? `Đã lặp ngày ${day - 1} → ${day} (${n} ô)` : `Ngày ${day - 1} trống`)
+      })
+    } catch (e: any) {
+      toast.error(String(e?.message ?? e ?? 'Lỗi lặp ngày'))
+    }
+  }, [ym, recordFromKeys])
+
+  const onDayNoteSave = useCallback(async (day: number, note: string) => {
+    try {
+      await UpsertDayNote(ym, day, note)
+      await reload()
+    } catch { toast.error('Lỗi lưu ghi chú') }
+  }, [ym, reload])
+
+  const runUndo = useCallback(async (entry: { before: CellSnap[] }) => {
+    await applySnapshot(ym, entry.before)
+    await reload()
+  }, [ym, reload])
+
+  const runRedo = useCallback(async (entry: { after: CellSnap[] }) => {
+    await applySnapshot(ym, entry.after)
+    await reload()
+  }, [ym, reload])
+
+  return {
+    onCellSave, onBulkAssign, onBulkCoef, onBulkDelete,
+    onFillRange, onPasteGrid, onFillDay, onCopyDayConfirm, onCopyPrev, onDayNoteSave,
+    runUndo, runRedo,
+  }
+}

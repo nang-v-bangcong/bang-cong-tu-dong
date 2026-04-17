@@ -130,38 +130,3 @@ func GetTeamMonthMatrix(yearMonth string) (models.TeamMatrix, error) {
 
 	return result, nil
 }
-
-func BulkUpsertWorksite(cells []models.CellRef, worksiteID *int64) error {
-	if len(cells) == 0 {
-		return nil
-	}
-	tx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	stmt, err := tx.Prepare(`
-		INSERT INTO attendance (user_id, date, coefficient, worksite_id, note)
-		VALUES (?, ?, 1, ?, '')
-		ON CONFLICT(user_id, date) DO UPDATE SET worksite_id = excluded.worksite_id
-	`)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	for _, c := range cells {
-		if err := ValidateDate(c.Date); err != nil {
-			return err
-		}
-		if _, err := stmt.Exec(c.UserID, c.Date, worksiteID); err != nil {
-			return err
-		}
-	}
-	if err := tx.Commit(); err != nil {
-		return err
-	}
-	WriteAudit("bulk_update", "attendance", int64(len(cells)), fmt.Sprintf("Gán công trường %d ô", len(cells)))
-	return nil
-}

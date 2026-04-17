@@ -13,20 +13,24 @@ interface Props {
   worksites: Worksite[]
   isSelected: boolean
   isFocused: boolean
+  isPreview: boolean
   isSunday: boolean
+  isToday: boolean
+  colorOn: boolean
   startEditingSignal: number // increment to force open editor (for auto-enter on typing)
   initialEditChar?: string
   onSave: (userId: number, day: number, coef: number, wsId: number | null) => void
   onSelect: (userId: number, day: number, mode: 'single' | 'toggle' | 'range') => void
   onFocus: (userId: number, day: number) => void
+  onFillStart: (userId: number, day: number, coef: number, wsId: number | null) => void
 }
 
 function MatrixCellInner(props: Props) {
   const {
     userId, day, cell, worksites,
-    isSelected, isFocused, isSunday,
+    isSelected, isFocused, isPreview, isSunday, isToday, colorOn,
     startEditingSignal, initialEditChar,
-    onSave, onSelect, onFocus,
+    onSave, onSelect, onFocus, onFillStart,
   } = props
 
   const [editing, setEditing] = useState(false)
@@ -87,21 +91,31 @@ function MatrixCellInner(props: Props) {
     else { onFocus(userId, day) }
   }
 
+  const wsTint = colorOn && wsId && wsName ? hashColor(wsName) + '22' : undefined // 22 = ~13% alpha
+
   const bg = isSelected
     ? 'var(--primary-soft)'
     : isFocused
       ? 'var(--primary-soft)'
-      : isSunday
-        ? 'var(--danger-soft)'
-        : undefined
+      : isToday
+        ? 'var(--warning-soft, #fef3c7)'
+        : isSunday
+          ? 'var(--danger-soft)'
+          : wsTint
 
-  const border = isFocused
-    ? '2px solid var(--primary)'
-    : '1px solid var(--border-light)'
+  const border = isPreview
+    ? '2px dashed var(--primary)'
+    : isFocused
+      ? '2px solid var(--primary)'
+      : isToday
+        ? '2px solid var(--warning, #f59e0b)'
+        : '1px solid var(--border-light)'
 
   return (
     <td
       ref={tdRef}
+      data-user-id={userId}
+      data-day={day}
       onClick={handleClick}
       onDoubleClick={openPicker}
       className="relative text-center text-xs select-none cursor-cell"
@@ -141,6 +155,21 @@ function MatrixCellInner(props: Props) {
           )}
         </>
       )}
+      {isFocused && !editing && (
+        <span
+          onMouseDown={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            onFillStart(userId, day, coef, wsId)
+          }}
+          title="Kéo để điền dải"
+          style={{
+            position: 'absolute', right: -3, bottom: -3, width: 7, height: 7,
+            background: 'var(--primary)', border: '1px solid var(--bg-card)',
+            cursor: 'crosshair', zIndex: 2,
+          }}
+        />
+      )}
       {showPicker && (
         <WorksitePickerPopup
           worksites={worksites}
@@ -161,6 +190,9 @@ export const MatrixCell = memo(MatrixCellInner, (a, b) => (
   a.cell === b.cell &&
   a.isSelected === b.isSelected &&
   a.isFocused === b.isFocused &&
+  a.isPreview === b.isPreview &&
+  a.isToday === b.isToday &&
+  a.colorOn === b.colorOn &&
   a.startEditingSignal === b.startEditingSignal &&
   a.initialEditChar === b.initialEditChar &&
   a.worksites === b.worksites &&

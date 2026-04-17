@@ -67,6 +67,23 @@ Attendance tracker web app (Go + Wails v2 + React/TS) dành cho công nhân xây
 
 ---
 
+### Phase 5+ (Bảng tổng Plus v2 — 2026-04-17) (✅ DONE)
+
+- **F1 Add person** — inline dialog single + bulk paste (uses `CreateTeamUser` / `BulkCreateUsers`)
+- **F2 Bulk input** — keyboard shortcut for multi-cell coef set / delete via `BulkUpsertCell` + `BulkDeleteAttendance`
+- **F3 Fill day / Clear day / Copy prev day** — right-click day header menu with `FillDayForAllUsers`, `CopyDayForAll`
+- **F4 Copy day → day** — dialog picker with overwrite toggle
+- **F5 Paste clipboard grid** — HTML table (Google Sheets) + TSV (Excel) via `papaparse`; `Ctrl+V` on focused cell
+- **F6 Excel export** — `xuri/excelize/v2` + native SaveFileDialog; PDF via `window.print()` + @media print CSS
+- **F7 Search filter** — client-side name filter in toolbar
+- **F8 Undo/Redo** — Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z, snapshot-based, 50-entry cap, merge <1s consecutive edits
+- **F9 Today highlight** — today's column visually marked
+- **F10 Sort rows** — name/days/salary, asc/desc, client-side
+- **F11 Cell color toggle** — show/hide per-worksite color coding
+- **F12 Drag-fill** — Excel-style fill handle at focused cell; CSS-zoom safe via `elementFromPoint`
+
+---
+
 ### Phase 4: Help Dialog (✅ DONE 2026-04-17)
 - Components:
   - `help-button.tsx` — nút Help + F1 shortcut
@@ -89,8 +106,8 @@ Attendance tracker web app (Go + Wails v2 + React/TS) dành cho công nhân xây
 
 | Category | Status | Details |
 |----------|--------|---------|
-| Go tests | ✅ PASS | 13 tests, no errors, vet clean |
-| Vitest (frontend) | ✅ PASS | 41 tests |
+| Go tests | ✅ PASS | ~25+ tests, no errors, vet clean |
+| Vitest (frontend) | ✅ PASS | 95 tests, 9 files |
 | Wails dev build | ✅ OK | `wails dev` runs, no crashes |
 | Wails production build | ✅ OK | `wails build` success |
 | Database | ✅ OK | SQLite migrate OK, 4 main tables + `day_notes` |
@@ -102,8 +119,6 @@ Attendance tracker web app (Go + Wails v2 + React/TS) dành cho công nhân xây
 ## Future Enhancements (Not Planned Yet)
 
 - [ ] **User authentication** — login screen for multi-user access
-- [ ] **Export Excel** — downloadable .xlsx from matrix/tab views
-- [ ] **Undo/Redo** — transaction history per-user
 - [ ] **Mobile app** — Flutter/React Native companion
 - [ ] **Cloud sync** — backup attendance to cloud
 - [ ] **Advanced reports** — salary trends, attendance patterns
@@ -133,9 +148,7 @@ Attendance tracker web app (Go + Wails v2 + React/TS) dành cho công nhân xây
 1. **No virtual scroll** — KISS: 3100 cells render fine with memoization
 2. **No markdown in help** — JSX + CSS styling is enough
 3. **No multi-language** — app 100% Vietnamese (per user request)
-4. **No undo/redo** — transaction history not planned, use "Copy day before" instead
-5. **No PDF export from matrix** — too complex; use tab Cá nhân/Nhóm for PDF
-6. **Zoom data** — stored per-area in localStorage, not synced to backend
+4. **Zoom data** — stored per-area in localStorage, not synced to backend
 
 ---
 

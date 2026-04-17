@@ -5,3 +5,4 @@ frontend/dist
 *.db
 *.db-journal
 .env
+frontend/package.json.md5

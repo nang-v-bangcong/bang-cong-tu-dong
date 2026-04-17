@@ -20,6 +20,21 @@ Ma trận Excel hiển thị tất cả người (hàng) × ngày (cột) trong 
 - Click vào số ngày ở hàng header để thêm/sửa ghi chú (tối đa 500 ký tự)
 - `Ctrl+Enter` để lưu, `Escape` để hủy
 
+**Tính năng mới (Bảng tổng Plus v2):**
+- **Thêm người** — nút "+" trên toolbar: nhập 1 người hoặc paste danh sách nhiều tên
+- **Bulk input** — chọn vùng nhiều ô rồi gõ số hoặc `Delete` để chấm / xóa hàng loạt
+- **Right-click header ngày** — menu: Fill toàn nhóm / Clear toàn nhóm / Copy ngày trước
+- **Copy ngày → ngày** — dialog chọn nguồn + đích + toggle ghi đè
+- **Paste từ clipboard** — `Ctrl+V` trên ô đang focus: dán bảng từ Google Sheets (HTML) hoặc Excel (TSV)
+- **Xuất Excel** — nút "Xuất Excel" → SaveFileDialog → file .xlsx
+- **In / PDF** — nút "In/PDF" → `window.print()` với CSS @media print
+- **Tìm kiếm** — ô filter trên toolbar, lọc tên theo thời gian thực
+- **Undo / Redo** — `Ctrl+Z` / `Ctrl+Y` hoặc `Ctrl+Shift+Z`, tối đa 50 bước
+- **Cột hôm nay** — cột ngày hiện tại được highlight tự động
+- **Sắp xếp hàng** — click header "Tên" / "Công" / "Lương" để sort asc/desc
+- **Màu công trường** — nút toggle show/hide màu nền theo công trường
+- **Drag-fill** — kéo fill handle (góc ô đang focus) để sao chép hệ số sang nhiều ô
+
 ---
 
 ## Phím tắt
@@ -44,6 +59,11 @@ Ma trận Excel hiển thị tất cả người (hàng) × ngày (cột) trong 
 | `Delete` / `Backspace` | Xóa công |
 | `Shift + Click` | Chọn vùng liên tiếp |
 | `Ctrl + Click` | Thêm/bỏ ô vào vùng chọn |
+| `Ctrl+Z` | Undo |
+| `Ctrl+Y` / `Ctrl+Shift+Z` | Redo |
+| `Ctrl+V` | Paste bảng từ clipboard (Google Sheets / Excel) |
+| Right-click header ngày | Menu: Fill / Clear / Copy ngày trước |
+| Kéo fill handle | Drag-fill sao chép hệ số sang ô liền kề |
 
 ### In hướng dẫn
 Trong dialog F1, nhấn nút **Máy in** để in trang phím tắt.

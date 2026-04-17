@@ -15,7 +15,7 @@ import { ResizableSplit } from '../components/resizable-split'
 import { BatchAttendance } from '../components/batch-attendance'
 import { ZoomableArea } from '../components/zoomable-area'
 import {
-  GetTeamUsers, CreateTeamUser, DeleteTeamUser, UpdateUser,
+  GetTeamUsers, CreateTeamUser, DeleteTeamUser, UpdateUser, BulkCreateUsers,
   GetMonthAttendance, UpsertAttendance, DeleteAttendance,
   GetMonthSummary, CopyPreviousDay,
   GetWorksites, GetToday, ExportPDF, GetWorksiteSummary,
@@ -92,6 +92,17 @@ export function TeamPage() {
       await reload(); setSelected({ id: u.id, name: u.name })
       toast.success(`Đã thêm ${name}`)
     } catch { toast.error('Lỗi thêm người') }
+  }
+
+  const handleBulkAddPerson = async (names: string[]) => {
+    try {
+      const res = await BulkCreateUsers(names) as any
+      const created = res.created?.length ?? 0
+      const skipped = res.skipped?.length ?? 0
+      await reload()
+      if (created > 0) toast.success(`Đã thêm ${created} người${skipped > 0 ? ` (bỏ qua ${skipped} trùng)` : ''}`)
+      else toast.info('Tất cả tên đã tồn tại')
+    } catch { toast.error('Lỗi thêm nhiều người') }
   }
 
   const handleConfirmDelete = async () => {
@@ -207,7 +218,7 @@ export function TeamPage() {
           </div>
         }
       />
-      <AddPersonDialog open={showAdd} onClose={() => setShowAdd(false)} onSave={handleAddPerson} />
+      <AddPersonDialog open={showAdd} onClose={() => setShowAdd(false)} onSave={handleAddPerson} onBulkSave={handleBulkAddPerson} />
       {selected && <EditUserDialog open={showEdit} name={selected.name} onSave={handleEditUser} onClose={() => setShowEdit(false)} />}
       <ConfirmDialog open={!!deleteTarget} title="Xóa người" message={`Bạn có chắc muốn xóa "${deleteTarget?.name}"? Dữ liệu chấm công sẽ bị mất.`} onConfirm={handleConfirmDelete} onCancel={() => setDeleteTarget(null)} />
       <BatchAttendance open={showBatch} users={users} onClose={() => setShowBatch(false)} onDone={() => { reload(); if (selected) loadPersonData(selected) }} />

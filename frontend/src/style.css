@@ -122,12 +122,33 @@ tbody tr { transition: background-color var(--transition); }
   border-radius: 3px;
 }
 
-/* Print: only help dialog visible, clean layout */
+/* Default state: hide print-only containers on screen */
+.matrix-print-container { display: none; }
+
+/* Print: hide everything except the dedicated print target */
 @media print {
+  @page { size: A4 landscape; margin: 8mm; }
   body * { visibility: hidden; }
+  /* Help dialog print support */
   .help-dialog, .help-dialog * { visibility: visible; }
   .help-dialog { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none !important; }
   .help-content { padding: 2rem; }
   .help-content h3 { color: #000; page-break-after: avoid; }
   .help-content section { page-break-inside: avoid; }
+  /* Matrix print view */
+  .matrix-print-container { display: block !important; visibility: visible; position: absolute; left: 0; top: 0; width: 100%; color: #000; }
+  .matrix-print-container * { visibility: visible; }
+  .matrix-print-title { font-size: 14px; font-weight: 700; margin: 0 0 4mm 0; text-align: center; }
+  .matrix-print-table { width: 100%; border-collapse: collapse; font-size: 9px; table-layout: fixed; }
+  .matrix-print-table th, .matrix-print-table td { border: 0.5pt solid #888; padding: 1pt 2pt; text-align: center; overflow: hidden; }
+  .matrix-print-table thead th { background: #E8EEF5 !important; font-weight: 700; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .matrix-print-table .note-row th { background: #FAFBFC !important; font-style: italic; font-weight: 400; font-size: 7px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .matrix-print-table .sunday-col { background: #FCEDEC !important; color: #C0392B; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .matrix-print-table .name-cell { text-align: left; font-weight: 600; padding-left: 4pt; }
+  .matrix-print-table .total { font-weight: 700; }
+  .matrix-print-table .salary { text-align: right; font-weight: 700; padding-right: 4pt; }
+  .matrix-print-table .wk { font-size: 7px; opacity: 0.8; }
+  .matrix-print-table tfoot th { background: #F2F4F7 !important; font-weight: 700; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .matrix-print-table thead { display: table-header-group; }
+  .matrix-print-table tfoot { display: table-footer-group; }
 }
