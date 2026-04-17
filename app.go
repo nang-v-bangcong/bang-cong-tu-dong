@@ -4,7 +4,6 @@ import (
 	"bang-cong/internal/models"
 	"bang-cong/internal/services"
 	"context"
-	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -118,7 +117,7 @@ func (a *App) CopyPreviousDay(userID int64, targetDate string) (models.Attendanc
 }
 
 func (a *App) GetToday() string {
-	return time.Now().Format("2006-01-02")
+	return services.TodayKST()
 }
 
 // --- Matrix & Day Notes ---

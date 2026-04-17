@@ -3,7 +3,6 @@ package main
 import (
 	"bang-cong/internal/services"
 	"fmt"
-	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -13,7 +12,7 @@ import (
 func (a *App) BackupDB() (string, error) {
 	filePath, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
 		Title:           "Sao luu du lieu",
-		DefaultFilename: fmt.Sprintf("bang-cong-backup-%s.db", time.Now().Format("2006-01-02")),
+		DefaultFilename: fmt.Sprintf("bang-cong-backup-%s.db", services.TodayKST()),
 		Filters: []runtime.FileFilter{
 			{DisplayName: "SQLite Database", Pattern: "*.db"},
 		},
