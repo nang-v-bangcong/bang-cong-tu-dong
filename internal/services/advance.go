@@ -28,7 +28,20 @@ func GetMonthAdvances(userID int64, yearMonth string) ([]models.Advance, error) 
 	return items, rows.Err()
 }
 
+func validateAdvanceInput(date string, amount int64) error {
+	if err := ValidateDate(date); err != nil {
+		return err
+	}
+	if amount <= 0 {
+		return fmt.Errorf("amount must be positive, got %d", amount)
+	}
+	return nil
+}
+
 func CreateAdvance(userID int64, date string, amount int64, note string) (models.Advance, error) {
+	if err := validateAdvanceInput(date, amount); err != nil {
+		return models.Advance{}, err
+	}
 	res, err := db.Exec(
 		`INSERT INTO advances (user_id, date, amount, note) VALUES (?, ?, ?, ?)`,
 		userID, date, amount, note,
@@ -42,6 +55,9 @@ func CreateAdvance(userID int64, date string, amount int64, note string) (models
 }
 
 func UpdateAdvance(id int64, date string, amount int64, note string) error {
+	if err := validateAdvanceInput(date, amount); err != nil {
+		return err
+	}
 	_, err := db.Exec(
 		`UPDATE advances SET date = ?, amount = ?, note = ? WHERE id = ?`,
 		date, amount, note, id,

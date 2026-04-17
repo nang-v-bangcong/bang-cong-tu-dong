@@ -48,6 +48,9 @@ func UpsertDayNote(yearMonth string, day int, note string) error {
 	if err := ValidateDay(day); err != nil {
 		return err
 	}
+	if max := DaysInMonth(yearMonth); day > max {
+		return fmt.Errorf("day %d out of range for %s (max %d)", day, yearMonth, max)
+	}
 	trimmed := strings.TrimSpace(note)
 	if len([]rune(trimmed)) > dayNoteMaxLen {
 		return fmt.Errorf("note too long (>%d chars)", dayNoteMaxLen)

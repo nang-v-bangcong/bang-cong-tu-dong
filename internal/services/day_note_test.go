@@ -83,6 +83,18 @@ func TestUpsertDayNote_Validation(t *testing.T) {
 	if err := UpsertDayNote("2026-04", 32, "x"); err == nil {
 		t.Error("expected invalid day=32 error")
 	}
+	// Day 31 in a 30-day month must be rejected (April has 30 days).
+	if err := UpsertDayNote("2026-04", 31, "x"); err == nil {
+		t.Error("expected day-out-of-month error for 2026-04-31")
+	}
+	// Day 30 in Feb (non-leap) must be rejected.
+	if err := UpsertDayNote("2025-02", 30, "x"); err == nil {
+		t.Error("expected day-out-of-month error for 2025-02-30")
+	}
+	// Day 29 in Feb leap year is OK.
+	if err := UpsertDayNote("2024-02", 29, "leap"); err != nil {
+		t.Errorf("2024-02-29 should pass: %v", err)
+	}
 	// Over 500 chars (rune count)
 	long := strings.Repeat("a", 501)
 	if err := UpsertDayNote("2026-04", 1, long); err == nil {
