@@ -99,6 +99,9 @@ func BackupDB(destPath string) error {
 	return os.WriteFile(destPath, src, 0644)
 }
 
+// RestoreDB replaces the active DB with the file at srcPath.
+// The global db is only swapped after the new file is safely in place and
+// can be opened; on any failure the existing db remains usable.
 func RestoreDB(srcPath string) error {
 	destPath, err := GetDBPath()
 	if err != nil {
@@ -108,14 +111,37 @@ func RestoreDB(srcPath string) error {
 	if err != nil {
 		return err
 	}
-	connStr := "file:" + destPath + "?_pragma=journal_mode(wal)&_pragma=foreign_keys(1)"
-	db.Close()
-	if err := os.WriteFile(destPath, data, 0644); err != nil {
-		db, _ = sql.Open("sqlite", connStr)
+	// Stage the new file beside the destination, then atomic-rename.
+	tmpPath := destPath + ".restore.tmp"
+	if err := os.WriteFile(tmpPath, data, 0644); err != nil {
 		return err
 	}
-	db, err = sql.Open("sqlite", connStr)
-	return err
+
+	connStr := "file:" + destPath + "?_pragma=journal_mode(wal)&_pragma=foreign_keys(1)"
+
+	// Close current handle so Windows lets us replace the file.
+	if db != nil {
+		_ = db.Close()
+	}
+	if err := os.Rename(tmpPath, destPath); err != nil {
+		// Best-effort reopen of the original DB so the app keeps working.
+		db, _ = sql.Open("sqlite", connStr)
+		_ = os.Remove(tmpPath)
+		return err
+	}
+
+	newDB, err := sql.Open("sqlite", connStr)
+	if err != nil {
+		db = nil
+		return err
+	}
+	if err := newDB.Ping(); err != nil {
+		_ = newDB.Close()
+		db = nil
+		return err
+	}
+	db = newDB
+	return nil
 }
 
 // getDataDir returns the writable data directory:
