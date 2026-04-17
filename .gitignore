@@ -6,3 +6,5 @@ frontend/dist
 *.db-journal
 .env
 frontend/package.json.md5
+coverage.out
+.claude/scheduled_tasks.lock
