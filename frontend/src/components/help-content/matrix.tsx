@@ -93,6 +93,18 @@ export function HelpContentMatrix() {
         </ul>
       </section>
       <section>
+        <h3>Cột "Lương" tính thế nào?</h3>
+        <p>Mỗi ô: <b>hệ số × lương có hiệu lực</b>. Lương có hiệu lực = lương công trường (nếu có), không thì lương cơ bản của người đó. Nếu cả 2 đều 0 → ô tính là "chưa có tiền" (vào cột Công nhưng không vào Lương).</p>
+        <p>Ví dụ: thợ 150k chấm 1 công ở site bình thường → 150k. Chấm 1 công ở alba (có lương riêng 200k) → 200k. Chi tiết xem tab Cá nhân.</p>
+      </section>
+      <section>
+        <h3>Thêm người từ Bảng tổng</h3>
+        <ul>
+          <li>Nút "Thêm người" → nhập tên + lương/ngày cơ bản (để trống = 0, sửa sau).</li>
+          <li>Hoặc "Dán nhiều tên" → paste danh sách tên (mỗi dòng 1 tên), lương mặc định 0 — chỉnh sau ở tab Nhóm bằng icon bút chì.</li>
+        </ul>
+      </section>
+      <section>
         <h3>Xuất Excel / PDF</h3>
         <ul>
           <li>Nút <b>Excel</b> → xuất cả bảng ra file .xlsx.</li>

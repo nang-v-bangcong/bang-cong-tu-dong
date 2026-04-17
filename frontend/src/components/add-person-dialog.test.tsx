@@ -25,13 +25,22 @@ describe('AddPersonDialog', () => {
     expect(submit.disabled).toBe(true)
   })
 
-  it('saves single name on submit', () => {
+  it('saves single name with wage 0 when wage field empty', () => {
     const { onSave, onClose } = renderDialog()
     const input = document.querySelector('input[type="text"], input:not([type])') as HTMLInputElement
     fireEvent.change(input, { target: { value: '  Alice  ' } })
     fireEvent.click(screen.getByRole('button', { name: 'Thêm' }))
-    expect(onSave).toHaveBeenCalledWith('Alice')
+    expect(onSave).toHaveBeenCalledWith('Alice', 0)
     expect(onClose).toHaveBeenCalled()
+  })
+
+  it('passes the entered wage to onSave', () => {
+    const { onSave } = renderDialog()
+    const inputs = document.querySelectorAll('input')
+    fireEvent.change(inputs[0], { target: { value: 'Bob' } })
+    fireEvent.change(inputs[1], { target: { value: '150000' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Thêm' }))
+    expect(onSave).toHaveBeenCalledWith('Bob', 150000)
   })
 
   it('switches to bulk mode and parses pasted names', () => {

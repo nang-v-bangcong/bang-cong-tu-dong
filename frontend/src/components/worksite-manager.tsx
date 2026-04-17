@@ -32,18 +32,18 @@ export function WorksiteManager({ open, onClose }: Props) {
   if (!open) return null
 
   const handleAdd = async () => {
-    if (!newName.trim() || !newWage) return
+    if (!newName.trim()) return
     try {
-      await CreateWorksite(newName.trim(), Number(newWage))
+      await CreateWorksite(newName.trim(), Number(newWage) || 0)
       setNewName(''); setNewWage(''); load(); triggerRefresh()
       toast.success('Đã thêm nơi làm việc')
     } catch { toast.error('Lỗi thêm nơi làm việc') }
   }
 
   const handleUpdate = async (id: number) => {
-    if (!editName.trim() || !editWage) return
+    if (!editName.trim()) return
     try {
-      await UpdateWorksite(id, editName.trim(), Number(editWage))
+      await UpdateWorksite(id, editName.trim(), Number(editWage) || 0)
       setEditId(null); load(); triggerRefresh(); toast.success('Đã cập nhật')
     } catch { toast.error('Lỗi cập nhật') }
   }
@@ -78,14 +78,18 @@ export function WorksiteManager({ open, onClose }: Props) {
             className={`flex-1 ${inputCls}`} style={{ border: '1px solid var(--border)' }} />
           <input type="number" value={newWage} onChange={(e) => setNewWage(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-            placeholder="Lương/ngày"
-            className={`w-28 ${inputCls}`} style={{ border: '1px solid var(--border)' }} />
+            placeholder="Lương (trống = theo người)"
+            className={`w-44 ${inputCls}`} style={{ border: '1px solid var(--border)' }} />
           <button onClick={handleAdd}
             className="px-3 py-2 text-white rounded-[var(--radius)] hover:opacity-90 transition-opacity"
             style={{ background: 'var(--primary)' }}>
             <Plus size={16} />
           </button>
         </div>
+        <p className="text-xs -mt-2 mb-3" style={{ color: 'var(--text-muted)' }}>
+          Để trống lương nếu công trường dùng lương cơ bản của từng người. Điền số khi có
+          mức khác biệt (ví dụ alba, tăng ca).
+        </p>
 
         <div className="overflow-auto flex-1 space-y-0.5">
           {sites.map((s) => (

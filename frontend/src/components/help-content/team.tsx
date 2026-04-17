@@ -8,14 +8,20 @@ export function HelpContentTeam() {
       <section>
         <h3>Các thao tác cơ bản</h3>
         <ul>
-          <li><b>Thêm người:</b> bấm "Thêm người" → nhập tên → OK.</li>
+          <li><b>Thêm người:</b> bấm "Thêm người" → nhập tên và lương/ngày cơ bản (để trống nếu công trường tự trả hết) → OK.</li>
           <li><b>Chọn người:</b> click tên người ở bảng tổng nhóm để xem bảng công chi tiết bên trái.</li>
           <li><b>Chấm công nhóm:</b> bấm "Chấm công nhóm" → chọn nhiều người cùng 1 ngày → nhập hệ số chung → OK.</li>
-          <li><b>Sửa/xoá người:</b> icon bút chì trên bảng, thùng rác bên cạnh tên.</li>
+          <li><b>Sửa lương/tên:</b> icon bút chì trên bảng mở dialog sửa cả tên lẫn lương cơ bản.</li>
+          <li><b>Xoá người:</b> icon thùng rác bên cạnh tên (có xác nhận).</li>
           <li><b>Tạm ứng:</b> panel bên phải lưu tạm ứng riêng mỗi người.</li>
           <li><b>Xuất PDF:</b> xuất bảng công của người đang chọn.</li>
           <li><b>Điều chỉnh tỷ lệ bảng/sidebar:</b> kéo thanh chia giữa.</li>
         </ul>
+      </section>
+      <section>
+        <h3>Lương từng người khác nhau</h3>
+        <p>Mỗi người có lương cơ bản riêng (thợ 150k, học việc 100k, thợ chính 180k…). Công trường có thể ghi đè lương riêng khi mức khác với cơ bản (ví dụ alba 200k).</p>
+        <p>Công thức: <b>tiền ngày = hệ số × (lương công trường nếu có, ngược lại lương cơ bản của người đó)</b>. Nếu cả hai đều 0 → ngày đó tính là "chưa có tiền".</p>
       </section>
       <section>
         <h3>So với tab Bảng tổng</h3>

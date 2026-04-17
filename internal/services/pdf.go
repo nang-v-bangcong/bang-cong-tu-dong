@@ -17,6 +17,9 @@ type PDFData struct {
 	Summary       models.MonthSummary
 	Worksites     map[int64]string
 	WorksiteWages map[int64]int64
+	// UserDailyWage is the user's base wage; used when the row has no
+	// worksite or the worksite's wage is 0.
+	UserDailyWage int64
 }
 
 // pdfFontFamily returns the family name to use after registering the UTF-8
@@ -84,9 +87,11 @@ func GeneratePDF(data PDFData, filePath string) error {
 		if r.WorksiteID != nil {
 			wsName = data.Worksites[*r.WorksiteID]
 		}
-		var wage int64
+		wage := data.UserDailyWage
 		if r.WorksiteID != nil {
-			wage = data.WorksiteWages[*r.WorksiteID]
+			if w := data.WorksiteWages[*r.WorksiteID]; w > 0 {
+				wage = w
+			}
 		}
 		salary := r.Coefficient * float64(wage)
 		date := r.Date

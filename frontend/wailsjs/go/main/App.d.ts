@@ -21,7 +21,7 @@ export function CopyPreviousDay(arg1:number,arg2:string):Promise<models.Attendan
 
 export function CreateAdvance(arg1:number,arg2:string,arg3:number,arg4:string):Promise<models.Advance>;
 
-export function CreateTeamUser(arg1:string):Promise<models.User>;
+export function CreateTeamUser(arg1:string,arg2:number):Promise<models.User>;
 
 export function CreateWorksite(arg1:string,arg2:number):Promise<models.Worksite>;
 
@@ -33,7 +33,7 @@ export function DeleteTeamUser(arg1:number):Promise<void>;
 
 export function DeleteWorksite(arg1:number):Promise<void>;
 
-export function EnsureSelfUser(arg1:string):Promise<models.User>;
+export function EnsureSelfUser(arg1:string,arg2:number):Promise<models.User>;
 
 export function ExportMatrixExcel(arg1:string):Promise<string>;
 
@@ -71,7 +71,7 @@ export function RestoreDB():Promise<void>;
 
 export function UpdateAdvance(arg1:number,arg2:string,arg3:number,arg4:string):Promise<void>;
 
-export function UpdateUser(arg1:number,arg2:string):Promise<void>;
+export function UpdateUser(arg1:number,arg2:string,arg3:number):Promise<void>;
 
 export function UpdateWorksite(arg1:number,arg2:string,arg3:number):Promise<void>;
 

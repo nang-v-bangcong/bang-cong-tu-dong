@@ -92,7 +92,7 @@ func TestFillDayForAllUsers_ExcludesSelfUser(t *testing.T) {
 
 	ws := seedWorksite(t, "W", 100000)
 	seedTeamUser(t, "A")
-	self, _ := EnsureSelfUser("Me")
+	self, _ := EnsureSelfUser("Me", 0)
 
 	n, err := FillDayForAllUsers("2026-04", 10, 1.0, &ws, false)
 	if err != nil {
@@ -327,7 +327,7 @@ func TestCopyDayForAll_ExcludesSelfUser(t *testing.T) {
 
 	ws := seedWorksite(t, "W", 100000)
 	a := seedTeamUser(t, "A")
-	self, _ := EnsureSelfUser("Me")
+	self, _ := EnsureSelfUser("Me", 0)
 
 	if _, err := UpsertAttendance(self.ID, "2026-04-10", 1.0, &ws, ""); err != nil {
 		t.Fatal(err)

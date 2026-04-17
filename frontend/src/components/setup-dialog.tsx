@@ -2,16 +2,18 @@ import { useState } from 'react'
 import { UserCircle } from 'lucide-react'
 
 interface Props {
-  onSave: (name: string) => void
+  onSave: (name: string, dailyWage: number) => void
 }
 
 export function SetupDialog({ onSave }: Props) {
   const [name, setName] = useState('')
+  const [wage, setWage] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim()) return
-    onSave(name.trim())
+    const w = Number(wage.replace(/[^\d]/g, '')) || 0
+    onSave(name.trim(), w)
   }
 
   const inputCls = 'w-full px-3 py-2 text-sm bg-transparent rounded-[var(--radius)]'
@@ -20,7 +22,7 @@ export function SetupDialog({ onSave }: Props) {
     <div className="fixed inset-0 flex items-center justify-center z-50" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
       <form
         onSubmit={handleSubmit}
-        className="w-[360px] p-6"
+        className="w-[380px] p-6"
         style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)' }}
       >
         <div className="flex items-center gap-3 mb-5">
@@ -31,8 +33,15 @@ export function SetupDialog({ onSave }: Props) {
           <label className="block text-sm font-medium mb-1">Tên của bạn</label>
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nguyen Van A"
             className={inputCls} style={{ border: '1px solid var(--border)' }} autoFocus />
+        </div>
+        <div className="mt-3">
+          <label className="block text-sm font-medium mb-1">Lương/ngày (₩)</label>
+          <input value={wage} onChange={(e) => setWage(e.target.value)} placeholder="150000"
+            inputMode="numeric"
+            className={inputCls} style={{ border: '1px solid var(--border)' }} />
           <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-            Lương được tính theo từng nơi làm việc. Bạn có thể thêm nơi làm việc sau khi vào app.
+            Đây là lương cơ bản của bạn (ví dụ thợ/học việc). Công trường có lương riêng
+            sẽ ghi đè con số này. Để trống nếu chưa biết.
           </p>
         </div>
         <button type="submit" disabled={!name.trim()}

@@ -38,8 +38,8 @@ export function CreateAdvance(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['CreateAdvance'](arg1, arg2, arg3, arg4);
 }
 
-export function CreateTeamUser(arg1) {
-  return window['go']['main']['App']['CreateTeamUser'](arg1);
+export function CreateTeamUser(arg1, arg2) {
+  return window['go']['main']['App']['CreateTeamUser'](arg1, arg2);
 }
 
 export function CreateWorksite(arg1, arg2) {
@@ -62,8 +62,8 @@ export function DeleteWorksite(arg1) {
   return window['go']['main']['App']['DeleteWorksite'](arg1);
 }
 
-export function EnsureSelfUser(arg1) {
-  return window['go']['main']['App']['EnsureSelfUser'](arg1);
+export function EnsureSelfUser(arg1, arg2) {
+  return window['go']['main']['App']['EnsureSelfUser'](arg1, arg2);
 }
 
 export function ExportMatrixExcel(arg1) {
@@ -138,8 +138,8 @@ export function UpdateAdvance(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['UpdateAdvance'](arg1, arg2, arg3, arg4);
 }
 
-export function UpdateUser(arg1, arg2) {
-  return window['go']['main']['App']['UpdateUser'](arg1, arg2);
+export function UpdateUser(arg1, arg2, arg3) {
+  return window['go']['main']['App']['UpdateUser'](arg1, arg2, arg3);
 }
 
 export function UpdateWorksite(arg1, arg2, arg3) {

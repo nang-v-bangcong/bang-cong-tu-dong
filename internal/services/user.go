@@ -8,6 +8,17 @@ import (
 	"strings"
 )
 
+// GetUserDailyWage returns the user's configured base wage; 0 if not set.
+// Used as the fallback when a worksite has no override wage.
+func GetUserDailyWage(id int64) (int64, error) {
+	var w int64
+	err := db.QueryRow(`SELECT COALESCE(daily_wage, 0) FROM users WHERE id = ?`, id).Scan(&w)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, nil
+	}
+	return w, err
+}
+
 func GetSelfUser() (models.User, error) {
 	var u models.User
 	err := db.QueryRow(
@@ -16,7 +27,7 @@ func GetSelfUser() (models.User, error) {
 	return u, err
 }
 
-func EnsureSelfUser(name string) (models.User, error) {
+func EnsureSelfUser(name string, dailyWage int64) (models.User, error) {
 	u, err := GetSelfUser()
 	if err == nil {
 		return u, nil
@@ -24,29 +35,35 @@ func EnsureSelfUser(name string) (models.User, error) {
 	if !errors.Is(err, sql.ErrNoRows) {
 		return models.User{}, err
 	}
+	if dailyWage < 0 {
+		return models.User{}, fmt.Errorf("lương không được âm")
+	}
 	res, err := db.Exec(
-		`INSERT INTO users (name, is_self) VALUES (?, 1)`,
-		name,
+		`INSERT INTO users (name, daily_wage, is_self) VALUES (?, ?, 1)`,
+		name, dailyWage,
 	)
 	if err != nil {
 		return models.User{}, err
 	}
 	id, _ := res.LastInsertId()
-	WriteAudit("create", "user", id, fmt.Sprintf("Thiết lập người dùng: %s", name))
-	return models.User{ID: id, Name: name, IsSelf: true}, nil
+	WriteAudit("create", "user", id, fmt.Sprintf("Thiết lập người dùng: %s (%d₩/ngày)", name, dailyWage))
+	return models.User{ID: id, Name: name, DailyWage: dailyWage, IsSelf: true}, nil
 }
 
-func UpdateUser(id int64, name string) error {
+func UpdateUser(id int64, name string, dailyWage int64) error {
 	n := strings.TrimSpace(name)
 	if n == "" {
 		return fmt.Errorf("tên không hợp lệ")
 	}
+	if dailyWage < 0 {
+		return fmt.Errorf("lương không được âm")
+	}
 	if err := checkNameUnique(n, id); err != nil {
 		return err
 	}
-	_, err := db.Exec(`UPDATE users SET name = ? WHERE id = ?`, n, id)
+	_, err := db.Exec(`UPDATE users SET name = ?, daily_wage = ? WHERE id = ?`, n, dailyWage, id)
 	if err == nil {
-		WriteAudit("update", "user", id, fmt.Sprintf("Đổi tên: %s", n))
+		WriteAudit("update", "user", id, fmt.Sprintf("Cập nhật người #%d: %s (%d₩/ngày)", id, n, dailyWage))
 	}
 	return err
 }
@@ -88,21 +105,24 @@ func GetTeamUsers() ([]models.User, error) {
 	return users, rows.Err()
 }
 
-func CreateTeamUser(name string) (models.User, error) {
+func CreateTeamUser(name string, dailyWage int64) (models.User, error) {
 	n := strings.TrimSpace(name)
 	if n == "" {
 		return models.User{}, fmt.Errorf("tên không hợp lệ")
 	}
+	if dailyWage < 0 {
+		return models.User{}, fmt.Errorf("lương không được âm")
+	}
 	if err := checkNameUnique(n, 0); err != nil {
 		return models.User{}, err
 	}
-	res, err := db.Exec(`INSERT INTO users (name, is_self) VALUES (?, 0)`, n)
+	res, err := db.Exec(`INSERT INTO users (name, daily_wage, is_self) VALUES (?, ?, 0)`, n, dailyWage)
 	if err != nil {
 		return models.User{}, err
 	}
 	id, _ := res.LastInsertId()
-	WriteAudit("create", "user", id, fmt.Sprintf("Thêm người: %s", n))
-	return models.User{ID: id, Name: n}, nil
+	WriteAudit("create", "user", id, fmt.Sprintf("Thêm người: %s (%d₩/ngày)", n, dailyWage))
+	return models.User{ID: id, Name: n, DailyWage: dailyWage}, nil
 }
 
 func DeleteTeamUser(id int64) error {

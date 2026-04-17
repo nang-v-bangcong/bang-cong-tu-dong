@@ -27,7 +27,7 @@ func TestBulkCreateUsers_SkipDuplicates(t *testing.T) {
 	cleanup := setupTestDB(t)
 	defer cleanup()
 
-	if _, err := CreateTeamUser("A"); err != nil {
+	if _, err := CreateTeamUser("A", 0); err != nil {
 		t.Fatal(err)
 	}
 	res, err := BulkCreateUsers([]string{"A", "B"})
@@ -103,10 +103,10 @@ func TestCreateTeamUser_RejectsDuplicate(t *testing.T) {
 	cleanup := setupTestDB(t)
 	defer cleanup()
 
-	if _, err := CreateTeamUser("Anh A"); err != nil {
+	if _, err := CreateTeamUser("Anh A", 0); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := CreateTeamUser("Anh A"); err == nil {
+	if _, err := CreateTeamUser("Anh A", 0); err == nil {
 		t.Error("expected duplicate rejection")
 	}
 }
@@ -115,7 +115,7 @@ func TestCreateTeamUser_RejectsBlank(t *testing.T) {
 	cleanup := setupTestDB(t)
 	defer cleanup()
 
-	if _, err := CreateTeamUser("   "); err == nil {
+	if _, err := CreateTeamUser("   ", 0); err == nil {
 		t.Error("expected blank name rejection")
 	}
 }
@@ -124,7 +124,7 @@ func TestCreateTeamUser_TrimsWhitespace(t *testing.T) {
 	cleanup := setupTestDB(t)
 	defer cleanup()
 
-	u, err := CreateTeamUser("  Anh B  ")
+	u, err := CreateTeamUser("  Anh B  ", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -137,14 +137,14 @@ func TestUpdateUser_RejectsDuplicate(t *testing.T) {
 	cleanup := setupTestDB(t)
 	defer cleanup()
 
-	a, err := CreateTeamUser("Anh A")
+	a, err := CreateTeamUser("Anh A", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := CreateTeamUser("Anh B"); err != nil {
+	if _, err := CreateTeamUser("Anh B", 0); err != nil {
 		t.Fatal(err)
 	}
-	if err := UpdateUser(a.ID, "Anh B"); err == nil {
+	if err := UpdateUser(a.ID, "Anh B", 0); err == nil {
 		t.Error("expected rename-to-duplicate rejection")
 	}
 }
@@ -153,11 +153,11 @@ func TestUpdateUser_KeepsSameName(t *testing.T) {
 	cleanup := setupTestDB(t)
 	defer cleanup()
 
-	a, err := CreateTeamUser("Anh A")
+	a, err := CreateTeamUser("Anh A", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := UpdateUser(a.ID, "Anh A"); err != nil {
+	if err := UpdateUser(a.ID, "Anh A", 0); err != nil {
 		t.Errorf("renaming user to its own name should be a noop, got %v", err)
 	}
 }

@@ -54,20 +54,20 @@ func (a *App) GetSelfUser() (models.User, error) {
 	return services.GetSelfUser()
 }
 
-func (a *App) EnsureSelfUser(name string) (models.User, error) {
-	return services.EnsureSelfUser(name)
+func (a *App) EnsureSelfUser(name string, dailyWage int64) (models.User, error) {
+	return services.EnsureSelfUser(name, dailyWage)
 }
 
-func (a *App) UpdateUser(id int64, name string) error {
-	return services.UpdateUser(id, name)
+func (a *App) UpdateUser(id int64, name string, dailyWage int64) error {
+	return services.UpdateUser(id, name, dailyWage)
 }
 
 func (a *App) GetTeamUsers() ([]models.User, error) {
 	return services.GetTeamUsers()
 }
 
-func (a *App) CreateTeamUser(name string) (models.User, error) {
-	return services.CreateTeamUser(name)
+func (a *App) CreateTeamUser(name string, dailyWage int64) (models.User, error) {
+	return services.CreateTeamUser(name, dailyWage)
 }
 
 func (a *App) DeleteTeamUser(id int64) error {

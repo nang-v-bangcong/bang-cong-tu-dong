@@ -16,7 +16,7 @@ func seedWorksite(t *testing.T, name string, wage int64) int64 {
 
 func seedTeamUser(t *testing.T, name string) int64 {
 	t.Helper()
-	u, err := CreateTeamUser(name)
+	u, err := CreateTeamUser(name, 0)
 	if err != nil {
 		t.Fatalf("create user: %v", err)
 	}
@@ -164,7 +164,7 @@ func TestGetTeamMonthMatrix_ExcludesSelfUser(t *testing.T) {
 	cleanup := setupTestDB(t)
 	defer cleanup()
 
-	self, err := EnsureSelfUser("Me")
+	self, err := EnsureSelfUser("Me", 0)
 	if err != nil {
 		t.Fatal(err)
 	}

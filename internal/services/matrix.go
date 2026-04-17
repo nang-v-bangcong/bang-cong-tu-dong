@@ -66,7 +66,7 @@ func GetTeamMonthMatrix(yearMonth string) (models.TeamMatrix, error) {
 
 	attRows, err := db.Query(`
 		SELECT a.id, a.user_id, a.date, a.coefficient, a.worksite_id, a.note,
-			COALESCE(w.name, ''), COALESCE(w.daily_wage, 0)
+			COALESCE(w.name, ''), COALESCE(w.daily_wage, 0), COALESCE(u.daily_wage, 0)
 		FROM attendance a
 		LEFT JOIN worksites w ON a.worksite_id = w.id
 		JOIN users u ON a.user_id = u.id
@@ -79,16 +79,17 @@ func GetTeamMonthMatrix(yearMonth string) (models.TeamMatrix, error) {
 
 	for attRows.Next() {
 		var (
-			id          int64
-			uid         int64
-			date        string
-			coef        float64
-			wsID        *int64
-			note        string
-			wsName      string
-			wsDailyWage int64
+			id            int64
+			uid           int64
+			date          string
+			coef          float64
+			wsID          *int64
+			note          string
+			wsName        string
+			wsDailyWage   int64
+			userDailyWage int64
 		)
-		if err := attRows.Scan(&id, &uid, &date, &coef, &wsID, &note, &wsName, &wsDailyWage); err != nil {
+		if err := attRows.Scan(&id, &uid, &date, &coef, &wsID, &note, &wsName, &wsDailyWage, &userDailyWage); err != nil {
 			return result, err
 		}
 		row, ok := rowsMap[uid]
@@ -113,7 +114,11 @@ func GetTeamMonthMatrix(yearMonth string) (models.TeamMatrix, error) {
 		if coef > 0 {
 			row.TotalDays++
 		}
-		row.Salary += coef * float64(wsDailyWage)
+		effective := wsDailyWage
+		if effective == 0 {
+			effective = userDailyWage
+		}
+		row.Salary += coef * float64(effective)
 		result.DayTotals[day] += coef
 	}
 	if err := attRows.Err(); err != nil {

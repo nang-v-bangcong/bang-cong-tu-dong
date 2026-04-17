@@ -71,6 +71,11 @@ func (a *App) ExportPDF(userID int64, userName string, yearMonth string) (string
 		wsWages[w.ID] = w.DailyWage
 	}
 
+	userWage, err := services.GetUserDailyWage(userID)
+	if err != nil {
+		return "", err
+	}
+
 	data := services.PDFData{
 		Title:         "Bang Cong - " + yearMonth,
 		UserName:      userName,
@@ -79,6 +84,7 @@ func (a *App) ExportPDF(userID int64, userName string, yearMonth string) (string
 		Summary:       summary,
 		Worksites:     wsMap,
 		WorksiteWages: wsWages,
+		UserDailyWage: userWage,
 	}
 
 	if err := services.GeneratePDF(data, filePath); err != nil {

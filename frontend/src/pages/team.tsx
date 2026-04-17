@@ -82,10 +82,10 @@ export function TeamPage() {
 
   const reload = async () => { const us = await loadUsers(); loadTeamSummary(); return us }
 
-  const handleAddPerson = async (name: string) => {
+  const handleAddPerson = async (name: string, dailyWage: number) => {
     try {
-      const u = await CreateTeamUser(name)
-      await reload(); setSelected({ id: u.id, name: u.name })
+      const u = await CreateTeamUser(name, dailyWage)
+      await reload(); setSelected({ id: u.id, name: u.name, dailyWage: u.dailyWage })
       toast.success(`Đã thêm ${name}`)
     } catch { toast.error('Lỗi thêm người') }
   }
@@ -111,11 +111,11 @@ export function TeamPage() {
     } catch { toast.error('Lỗi xóa') }
   }
 
-  const handleEditUser = async (name: string) => {
+  const handleEditUser = async (name: string, dailyWage: number) => {
     if (!selected) return
     try {
-      await UpdateUser(selected.id, name)
-      const updated = { ...selected, name }
+      await UpdateUser(selected.id, name, dailyWage)
+      const updated = { ...selected, name, dailyWage }
       setSelected(updated); setShowEdit(false); await reload(); loadPersonData(updated)
       toast.success('Đã cập nhật')
     } catch { toast.error('Lỗi cập nhật') }
@@ -189,7 +189,7 @@ export function TeamPage() {
         }
       />
       <AddPersonDialog open={showAdd} onClose={() => setShowAdd(false)} onSave={handleAddPerson} onBulkSave={handleBulkAddPerson} />
-      {selected && <EditUserDialog open={showEdit} name={selected.name} onSave={handleEditUser} onClose={() => setShowEdit(false)} />}
+      {selected && <EditUserDialog open={showEdit} name={selected.name} dailyWage={selected.dailyWage} onSave={handleEditUser} onClose={() => setShowEdit(false)} />}
       <ConfirmDialog open={!!deleteTarget} title="Xóa người" message={`Bạn có chắc muốn xóa "${deleteTarget?.name}"? Dữ liệu chấm công sẽ bị mất.`} onConfirm={handleConfirmDelete} onCancel={() => setDeleteTarget(null)} />
       <BatchAttendance open={showBatch} users={users} onClose={() => setShowBatch(false)} onDone={() => { reload(); if (selected) loadPersonData(selected) }} />
     </>

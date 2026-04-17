@@ -23,7 +23,7 @@ func TestRestoreDB_HappyPath(t *testing.T) {
 	}()
 
 	// Seed one user so we can tell "before" from "after".
-	if _, err := CreateTeamUser("Before-Restore"); err != nil {
+	if _, err := CreateTeamUser("Before-Restore", 0); err != nil {
 		t.Fatalf("seed: %v", err)
 	}
 
@@ -34,7 +34,7 @@ func TestRestoreDB_HappyPath(t *testing.T) {
 	}
 
 	// Mutate DB after backup.
-	if _, err := CreateTeamUser("After-Backup"); err != nil {
+	if _, err := CreateTeamUser("After-Backup", 0); err != nil {
 		t.Fatalf("seed after: %v", err)
 	}
 
@@ -84,7 +84,7 @@ func TestRestoreDB_BadSource_KeepsOriginal(t *testing.T) {
 		}
 	}()
 
-	if _, err := CreateTeamUser("Survivor"); err != nil {
+	if _, err := CreateTeamUser("Survivor", 0); err != nil {
 		t.Fatalf("seed: %v", err)
 	}
 

@@ -280,7 +280,7 @@ func TestGetTeamMonthSummaries_GroupsByUser(t *testing.T) {
 func TestGetTeamMonthSummaries_ExcludesSelf(t *testing.T) {
 	cleanup := setupTestDB(t)
 	defer cleanup()
-	self, err := EnsureSelfUser("Me")
+	self, err := EnsureSelfUser("Me", 0)
 	if err != nil {
 		t.Fatal(err)
 	}

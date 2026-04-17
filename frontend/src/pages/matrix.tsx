@@ -79,8 +79,8 @@ export function MatrixPage() {
     setConfirm({ msg: `Xóa toàn bộ ${cells.length} ô của ngày ${day}?`, onOK: () => { doBulkDelete(cells); setConfirm(null) } })
   }, [matrix, doBulkDelete])
 
-  const handleAddPerson = useCallback(async (name: string) => {
-    try { await CreateTeamUser(name); toast.success(`Đã thêm ${name}`); triggerRefresh() }
+  const handleAddPerson = useCallback(async (name: string, dailyWage: number) => {
+    try { await CreateTeamUser(name, dailyWage); toast.success(`Đã thêm ${name}`); triggerRefresh() }
     catch { toast.error('Lỗi thêm người') }
   }, [triggerRefresh])
 

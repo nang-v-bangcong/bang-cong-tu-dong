@@ -57,19 +57,19 @@ export function PersonalPage() {
       .catch(() => { setNeedSetup(true); setLoading(false) })
   }, [yearMonth, refreshTrigger, loadData])
 
-  const handleSetup = async (name: string) => {
+  const handleSetup = async (name: string, dailyWage: number) => {
     try {
-      const u = await EnsureSelfUser(name)
+      const u = await EnsureSelfUser(name, dailyWage)
       setUser(u); setNeedSetup(false); loadData(u)
       toast.success('Thiết lập thành công!')
     } catch { toast.error('Lỗi thiết lập') }
   }
 
-  const handleEditUser = async (name: string) => {
+  const handleEditUser = async (name: string, dailyWage: number) => {
     if (!user) return
     try {
-      await UpdateUser(user.id, name)
-      const updated = { ...user, name }
+      await UpdateUser(user.id, name, dailyWage)
+      const updated = { ...user, name, dailyWage }
       setUser(updated); setShowEdit(false); loadData(updated)
       toast.success('Đã cập nhật thông tin')
     } catch { toast.error('Lỗi cập nhật') }
@@ -133,7 +133,7 @@ export function PersonalPage() {
           </div>
         }
       />
-      <EditUserDialog open={showEdit} name={user.name} onSave={handleEditUser} onClose={() => setShowEdit(false)} />
+      <EditUserDialog open={showEdit} name={user.name} dailyWage={user.dailyWage} onSave={handleEditUser} onClose={() => setShowEdit(false)} />
     </>
   )
 }

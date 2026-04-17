@@ -10,18 +10,19 @@ func GetMonthSummary(userID int64, yearMonth string) (models.MonthSummary, error
 		return s, err
 	}
 
-	// Paid: attendance với worksite có daily_wage > 0.
-	// Unpaid: phần còn lại (không có worksite hoặc worksite daily_wage = 0).
+	// Effective wage = worksite override (if > 0) else user base wage else 0.
+	// Paid: effective wage > 0. Unpaid: effective wage = 0 (apprentice w/ no base).
 	err := db.QueryRow(`
 		SELECT
 			COUNT(*),
 			COALESCE(SUM(a.coefficient), 0),
-			COALESCE(SUM(CASE WHEN COALESCE(w.daily_wage, 0) > 0 THEN 1 ELSE 0 END), 0),
-			COALESCE(SUM(CASE WHEN COALESCE(w.daily_wage, 0) > 0 THEN a.coefficient ELSE 0 END), 0),
-			COALESCE(SUM(CASE WHEN COALESCE(w.daily_wage, 0) > 0 THEN 0 ELSE 1 END), 0),
-			COALESCE(SUM(CASE WHEN COALESCE(w.daily_wage, 0) > 0 THEN 0 ELSE a.coefficient END), 0),
-			COALESCE(SUM(a.coefficient * COALESCE(w.daily_wage, 0)), 0)
+			COALESCE(SUM(CASE WHEN COALESCE(NULLIF(w.daily_wage, 0), u.daily_wage, 0) > 0 THEN 1 ELSE 0 END), 0),
+			COALESCE(SUM(CASE WHEN COALESCE(NULLIF(w.daily_wage, 0), u.daily_wage, 0) > 0 THEN a.coefficient ELSE 0 END), 0),
+			COALESCE(SUM(CASE WHEN COALESCE(NULLIF(w.daily_wage, 0), u.daily_wage, 0) > 0 THEN 0 ELSE 1 END), 0),
+			COALESCE(SUM(CASE WHEN COALESCE(NULLIF(w.daily_wage, 0), u.daily_wage, 0) > 0 THEN 0 ELSE a.coefficient END), 0),
+			COALESCE(SUM(a.coefficient * COALESCE(NULLIF(w.daily_wage, 0), u.daily_wage, 0)), 0)
 		FROM attendance a
+		JOIN users u ON a.user_id = u.id
 		LEFT JOIN worksites w ON a.worksite_id = w.id
 		WHERE a.user_id = ? AND a.date LIKE ?
 	`, userID, yearMonth+"%").Scan(
@@ -50,11 +51,15 @@ func GetWorksiteSummary(userID int64, yearMonth string) ([]models.WorksiteSummar
 	if err := ValidateYearMonth(yearMonth); err != nil {
 		return nil, err
 	}
+	// DailyWage column here returns the EFFECTIVE wage per worksite for this user,
+	// i.e. worksite override if non-zero, else the user's base wage.
 	rows, err := db.Query(`
 		SELECT a.worksite_id, COALESCE(w.name, 'Không xác định'),
-			COALESCE(w.daily_wage, 0), SUM(a.coefficient),
-			SUM(a.coefficient * COALESCE(w.daily_wage, 0))
+			COALESCE(NULLIF(w.daily_wage, 0), u.daily_wage, 0),
+			SUM(a.coefficient),
+			SUM(a.coefficient * COALESCE(NULLIF(w.daily_wage, 0), u.daily_wage, 0))
 		FROM attendance a
+		JOIN users u ON a.user_id = u.id
 		LEFT JOIN worksites w ON a.worksite_id = w.id
 		WHERE a.user_id = ? AND a.date LIKE ?
 		GROUP BY a.worksite_id
@@ -89,11 +94,11 @@ func GetTeamMonthSummaries(yearMonth string) ([]models.UserMonthSummary, error) 
 			u.id, u.name,
 			COALESCE(COUNT(a.id), 0),
 			COALESCE(SUM(a.coefficient), 0),
-			COALESCE(SUM(CASE WHEN COALESCE(w.daily_wage, 0) > 0 THEN 1 ELSE 0 END), 0),
-			COALESCE(SUM(CASE WHEN COALESCE(w.daily_wage, 0) > 0 THEN a.coefficient ELSE 0 END), 0),
-			COALESCE(SUM(CASE WHEN COALESCE(w.daily_wage, 0) > 0 THEN 0 ELSE 1 END), 0),
-			COALESCE(SUM(CASE WHEN COALESCE(w.daily_wage, 0) > 0 THEN 0 ELSE a.coefficient END), 0),
-			COALESCE(SUM(a.coefficient * COALESCE(w.daily_wage, 0)), 0)
+			COALESCE(SUM(CASE WHEN COALESCE(NULLIF(w.daily_wage, 0), u.daily_wage, 0) > 0 THEN 1 ELSE 0 END), 0),
+			COALESCE(SUM(CASE WHEN COALESCE(NULLIF(w.daily_wage, 0), u.daily_wage, 0) > 0 THEN a.coefficient ELSE 0 END), 0),
+			COALESCE(SUM(CASE WHEN COALESCE(NULLIF(w.daily_wage, 0), u.daily_wage, 0) > 0 THEN 0 ELSE 1 END), 0),
+			COALESCE(SUM(CASE WHEN COALESCE(NULLIF(w.daily_wage, 0), u.daily_wage, 0) > 0 THEN 0 ELSE a.coefficient END), 0),
+			COALESCE(SUM(a.coefficient * COALESCE(NULLIF(w.daily_wage, 0), u.daily_wage, 0)), 0)
 		FROM users u
 		LEFT JOIN attendance a ON a.user_id = u.id AND a.date LIKE ?
 		LEFT JOIN worksites w ON a.worksite_id = w.id

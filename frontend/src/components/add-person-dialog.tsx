@@ -4,7 +4,7 @@ import { UserPlus } from 'lucide-react'
 interface Props {
   open: boolean
   onClose: () => void
-  onSave: (name: string) => void
+  onSave: (name: string, dailyWage: number) => void
   onBulkSave: (names: string[]) => void
 }
 
@@ -26,6 +26,7 @@ function parseNames(raw: string): string[] {
 export function AddPersonDialog({ open, onClose, onSave, onBulkSave }: Props) {
   const [mode, setMode] = useState<Mode>('single')
   const [name, setName] = useState('')
+  const [wage, setWage] = useState('')
   const [raw, setRaw] = useState('')
 
   const names = useMemo(() => parseNames(raw), [raw])
@@ -34,6 +35,7 @@ export function AddPersonDialog({ open, onClose, onSave, onBulkSave }: Props) {
 
   const resetAndClose = () => {
     setName('')
+    setWage('')
     setRaw('')
     setMode('single')
     onClose()
@@ -43,7 +45,8 @@ export function AddPersonDialog({ open, onClose, onSave, onBulkSave }: Props) {
     e.preventDefault()
     if (mode === 'single') {
       if (!name.trim()) return
-      onSave(name.trim())
+      const w = Number(wage.replace(/[^\d]/g, '')) || 0
+      onSave(name.trim(), w)
       resetAndClose()
       return
     }
@@ -81,6 +84,13 @@ export function AddPersonDialog({ open, onClose, onSave, onBulkSave }: Props) {
             <label className="block text-sm font-medium mb-1">Tên</label>
             <input value={name} onChange={(e) => setName(e.target.value)}
               className={inputCls} style={{ border: '1px solid var(--border)' }} autoFocus />
+            <label className="block text-sm font-medium mt-3 mb-1">Lương/ngày (₩)</label>
+            <input value={wage} onChange={(e) => setWage(e.target.value)}
+              placeholder="150000" inputMode="numeric"
+              className={inputCls} style={{ border: '1px solid var(--border)' }} />
+            <p className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>
+              Lương cơ bản. Để trống nếu công trường luôn tự trả.
+            </p>
           </div>
         ) : (
           <div>

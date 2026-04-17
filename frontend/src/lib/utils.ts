@@ -1,6 +1,6 @@
 // --- Shared types ---
 
-export interface User { id: number; name: string }
+export interface User { id: number; name: string; dailyWage: number }
 export interface Worksite { id: number; name: string; dailyWage: number }
 export interface Attendance { id: number; date: string; coefficient: number; worksiteId: number | null; note: string }
 export interface Summary {
@@ -29,7 +29,7 @@ export function mapWorksites(raw: RawList<any>): Worksite[] {
 }
 
 export function mapUsers(raw: RawList<any>): User[] {
-  return (raw ?? []).map((u) => ({ id: u.id, name: u.name }))
+  return (raw ?? []).map((u) => ({ id: u.id, name: u.name, dailyWage: u.dailyWage ?? 0 }))
 }
 
 // --- Formatters ---
