@@ -73,4 +73,3 @@ export function useZoomToCursor(storageKey: string) {
 
 export const ZOOM_MIN = MIN
 export const ZOOM_MAX = MAX
-export const ZOOM_STEP = STEP

@@ -25,7 +25,6 @@ export function BatchAttendance({ open, users, onClose, onDone }: Props) {
   const [rows, setRows] = useState<Row[]>([])
   const [worksites, setWorksites] = useState<Worksite[]>([])
   const [wsId, setWsId] = useState<number | null>(null)
-  const [today, setToday] = useState('')
   const [date, setDate] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -33,7 +32,6 @@ export function BatchAttendance({ open, users, onClose, onDone }: Props) {
     if (!open) return
     Promise.all([GetWorksites(), GetToday()]).then(([ws, td]) => {
       setWorksites(mapWorksites(ws))
-      setToday(td as string)
       setDate(td as string)
     })
     setRows(users.map((u) => ({ userId: u.id, name: u.name, checked: true, coefficient: 1 })))
