@@ -9,6 +9,7 @@ import { BulkActionBar } from './bulk-action-bar'
 import { DayHeaderMenu } from './day-header-menu'
 import { useMatrixKeys } from '../lib/use-matrix-keys'
 import { useMatrixPaste } from '../lib/use-matrix-paste'
+import { useMatrixCopy } from '../lib/use-matrix-copy'
 import { useMatrixSelection } from '../lib/use-matrix-selection'
 import { filterSortRows } from '../lib/matrix-filter'
 import { useDragFill } from '../lib/use-drag-fill'
@@ -76,6 +77,7 @@ export function MatrixTable({
   })
 
   useMatrixPaste({ focus, rows, daysInMonth, onPasteGrid })
+  useMatrixCopy({ selected, rows })
 
   const dragFill = useDragFill({
     rows, daysInMonth,
