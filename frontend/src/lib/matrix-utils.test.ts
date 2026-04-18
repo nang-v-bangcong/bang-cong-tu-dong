@@ -8,6 +8,7 @@ import {
   parseCellKey,
   dateOf,
   formatCoef,
+  computeWsBreakdown,
 } from './matrix-utils'
 
 describe('getMonthDays', () => {
@@ -76,4 +77,79 @@ describe('formatCoef', () => {
   it('half', () => expect(formatCoef(0.5)).toBe('0.5'))
   it('1.5', () => expect(formatCoef(1.5)).toBe('1.5'))
   it('strips trailing zeros', () => expect(formatCoef(1.25)).toBe('1.25'))
+})
+
+describe('computeWsBreakdown', () => {
+  type Cell = { coefficient: number; worksiteId?: number }
+  type Row = { userId: number; cells: Record<number, Cell> }
+  const users = new Map<number, { dailyWage: number }>([
+    [1, { dailyWage: 200_000 }],
+    [2, { dailyWage: 180_000 }],
+  ])
+  const worksites = new Map<number, { dailyWage: number; name: string }>([
+    [10, { dailyWage: 250_000, name: 'CT A' }],
+    [20, { dailyWage: 0, name: 'CT B' }],
+  ])
+
+  it('groups by worksite and sums coef/salary', () => {
+    const rows: Row[] = [
+      { userId: 1, cells: { 1: { coefficient: 1, worksiteId: 10 }, 2: { coefficient: 0.5, worksiteId: 10 } } },
+      { userId: 2, cells: { 1: { coefficient: 1, worksiteId: 20 }, 3: { coefficient: 1, worksiteId: 10 } } },
+    ]
+    const out = computeWsBreakdown(rows, users, worksites)
+    const a = out.find((x) => x.wsId === 10)!
+    const b = out.find((x) => x.wsId === 20)!
+    expect(a.totalCoef).toBeCloseTo(2.5)
+    // CT A override: 1*250k + 0.5*250k + 1*250k = 625k
+    expect(a.totalSalary).toBeCloseTo(625_000)
+    expect(b.totalCoef).toBeCloseTo(1)
+    // CT B wage=0 → fallback user 2 dailyWage 180k
+    expect(b.totalSalary).toBeCloseTo(180_000)
+  })
+
+  it('handles unassigned cells as "Chưa gán"', () => {
+    const rows: Row[] = [
+      { userId: 1, cells: { 5: { coefficient: 1 }, 6: { coefficient: 0.5, worksiteId: 10 } } },
+    ]
+    const out = computeWsBreakdown(rows, users, worksites)
+    const unassigned = out.find((x) => x.wsId === null)!
+    expect(unassigned.wsName).toBe('Chưa gán')
+    expect(unassigned.totalCoef).toBeCloseTo(1)
+    expect(unassigned.totalSalary).toBeCloseTo(200_000)
+  })
+
+  it('sorts by totalCoef descending', () => {
+    const rows: Row[] = [
+      { userId: 1, cells: { 1: { coefficient: 0.5, worksiteId: 10 }, 2: { coefficient: 3, worksiteId: 20 } } },
+    ]
+    const out = computeWsBreakdown(rows, users, worksites)
+    expect(out[0].wsId).toBe(20)
+    expect(out[1].wsId).toBe(10)
+  })
+
+  it('skips zero-coefficient cells', () => {
+    const rows: Row[] = [
+      { userId: 1, cells: { 1: { coefficient: 0, worksiteId: 10 }, 2: { coefficient: 1, worksiteId: 10 } } },
+    ]
+    const out = computeWsBreakdown(rows, users, worksites)
+    expect(out).toHaveLength(1)
+    expect(out[0].totalCoef).toBeCloseTo(1)
+  })
+
+  it('handles empty rows', () => {
+    expect(computeWsBreakdown([] as Row[], users, worksites)).toEqual([])
+  })
+
+  it('grand totals match sum of breakdown', () => {
+    const rows: Row[] = [
+      { userId: 1, cells: { 1: { coefficient: 1, worksiteId: 10 }, 2: { coefficient: 1 } } },
+      { userId: 2, cells: { 1: { coefficient: 0.5, worksiteId: 20 } } },
+    ]
+    const out = computeWsBreakdown(rows, users, worksites)
+    const totalCoef = out.reduce((s, x) => s + x.totalCoef, 0)
+    const totalSalary = out.reduce((s, x) => s + x.totalSalary, 0)
+    // 1 (CT A, 250k) + 1 (unassigned u1, 200k) + 0.5 (CT B→u2 180k = 90k)
+    expect(totalCoef).toBeCloseTo(2.5)
+    expect(totalSalary).toBeCloseTo(250_000 + 200_000 + 90_000)
+  })
 })

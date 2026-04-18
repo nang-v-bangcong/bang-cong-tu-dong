@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { useAppStore } from '../stores/app-store'
 import { useHistoryStore } from '../stores/matrix-history-store'
-import { type Worksite, mapWorksites } from '../lib/utils'
+import { type User, type Worksite, mapUsers, mapWorksites } from '../lib/utils'
+import { computeWsBreakdown } from '../lib/matrix-utils'
 import { MatrixTable } from '../components/matrix-table'
 import { MatrixToolbar } from '../components/matrix-toolbar'
 import { MatrixPrintView } from '../components/matrix-print-view'
@@ -14,11 +15,7 @@ import { useMatrixMutations, type BulkCells } from '../lib/use-matrix-mutations'
 import { useMatrixKeyboard } from '../lib/use-matrix-keyboard'
 import { useTodayScroll } from '../lib/use-today-scroll'
 import { type models } from '../../wailsjs/go/models'
-import {
-  GetTeamMonthMatrix, GetWorksites, GetToday,
-  CreateTeamUser, BulkCreateUsers,
-  ExportMatrixExcel,
-} from '../../wailsjs/go/main/App'
+import { GetTeamMonthMatrix, GetWorksites, GetTeamUsers, GetToday, CreateTeamUser, BulkCreateUsers, ExportMatrixExcel } from '../../wailsjs/go/main/App'
 
 type Confirm = { msg: string; onOK: () => void }
 
@@ -32,6 +29,7 @@ export function MatrixPage() {
 
   const [matrix, setMatrix] = useState<models.TeamMatrix | null>(null)
   const [worksites, setWorksites] = useState<Worksite[]>([])
+  const [users, setUsers] = useState<User[]>([])
   const [today, setToday] = useState('')
   const [loading, setLoading] = useState(false)
   const [confirm, setConfirm] = useState<Confirm | null>(null)
@@ -41,19 +39,11 @@ export function MatrixPage() {
   const load = useCallback(async (): Promise<models.TeamMatrix | null> => {
     try {
       setLoading(true)
-      const [m, ws, td] = await Promise.all([
-        GetTeamMonthMatrix(yearMonth), GetWorksites(), GetToday(),
-      ])
-      setMatrix(m)
-      setWorksites(mapWorksites(ws))
-      setToday(td)
+      const [m, ws, us, td] = await Promise.all([GetTeamMonthMatrix(yearMonth), GetWorksites(), GetTeamUsers(), GetToday()])
+      setMatrix(m); setWorksites(mapWorksites(ws)); setUsers(mapUsers(us)); setToday(td)
       return m
-    } catch {
-      toast.error('Lỗi tải dữ liệu')
-      return null
-    } finally {
-      setLoading(false)
-    }
+    } catch { toast.error('Lỗi tải dữ liệu'); return null }
+    finally { setLoading(false) }
   }, [yearMonth])
 
   useEffect(() => { load() }, [load, refreshTrigger])
@@ -128,6 +118,12 @@ export function MatrixPage() {
   const togglePaint = useCallback(() => { setPaintMode(!paintMode) }, [paintMode, setPaintMode])
   useMatrixKeyboard({ runUndo: m.runUndo, runRedo: m.runRedo, onGoToday, onTogglePaint: togglePaint })
 
+  const breakdown = useMemo(() => matrix
+    ? computeWsBreakdown(matrix.rows,
+        new Map(users.map((u) => [u.id, { dailyWage: u.dailyWage }])),
+        new Map(worksites.map((w) => [w.id, { dailyWage: w.dailyWage, name: w.name }])))
+    : [], [matrix, users, worksites])
+
   if (loading && !matrix) return <p className="p-4 text-sm" style={{ color: 'var(--text-muted)' }}>Đang tải...</p>
   if (!matrix) return null
 
@@ -154,6 +150,7 @@ export function MatrixPage() {
         <MatrixTable
           matrix={matrix}
           worksites={worksites}
+          breakdown={breakdown}
           search={matrixSearch}
           sortBy={matrixSortBy}
           sortDir={matrixSortDir}
@@ -194,7 +191,7 @@ export function MatrixPage() {
         onSave={handleAddPerson}
         onBulkSave={handleBulkAddPerson}
       />
-      <MatrixPrintView matrix={matrix} />
+      <MatrixPrintView matrix={matrix} breakdown={breakdown} />
     </div>
   )
 }

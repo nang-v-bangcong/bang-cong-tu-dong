@@ -1,13 +1,14 @@
 import { type models } from '../../wailsjs/go/models'
-import { isSundayOf, getWeekdayShort } from '../lib/matrix-utils'
+import { isSundayOf, getWeekdayShort, type WsBreakdownItem } from '../lib/matrix-utils'
 import { formatWon } from '../lib/utils'
 
 interface Props {
   matrix: models.TeamMatrix
+  breakdown: WsBreakdownItem[]
 }
 
 // Absolutely hidden on screen; revealed only by print media query.
-export function MatrixPrintView({ matrix }: Props) {
+export function MatrixPrintView({ matrix, breakdown }: Props) {
   const { yearMonth, daysInMonth, rows, dayNotes, dayTotals } = matrix
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1)
   const grandTotalCoef = rows.reduce((s, r) => s + r.totalCoef, 0)
@@ -70,6 +71,25 @@ export function MatrixPrintView({ matrix }: Props) {
           </tr>
         </tfoot>
       </table>
+      {breakdown.length > 0 && (
+        <div className="matrix-print-breakdown">
+          <h3>Theo công trường</h3>
+          <table>
+            <thead>
+              <tr><th>Công trường</th><th>Công</th><th>Lương</th></tr>
+            </thead>
+            <tbody>
+              {breakdown.map((b) => (
+                <tr key={b.wsId ?? 'unassigned'}>
+                  <td>{b.wsName}</td>
+                  <td className="total">{b.totalCoef.toFixed(1)}</td>
+                  <td className="total">{formatWon(b.totalSalary)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }

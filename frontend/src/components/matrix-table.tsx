@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { type Worksite } from '../lib/utils'
+import { type WsBreakdownItem } from '../lib/matrix-utils'
 import { type models } from '../../wailsjs/go/models'
 import { MatrixHeader } from './matrix-header'
 import { MatrixFooter } from './matrix-footer'
@@ -17,6 +18,7 @@ type BulkCells = Array<{ userId: number; day: number }>
 interface Props {
   matrix: models.TeamMatrix
   worksites: Worksite[]
+  breakdown: WsBreakdownItem[]
   search: string
   sortBy: 'name' | 'days' | 'salary'
   sortDir: 'asc' | 'desc'
@@ -39,7 +41,7 @@ interface Props {
 }
 
 export function MatrixTable({
-  matrix, worksites, search, sortBy, sortDir, cellColorOn, today,
+  matrix, worksites, breakdown, search, sortBy, sortDir, cellColorOn, today,
   paintMode, paintCoef, paintWsId,
   onCellSave, onBulkAssign, onBulkCoef, onBulkDelete,
   onFillDay, onClearDay, onCopyDay, onCopyPrev, onPasteGrid, onFillRange, onDayNoteSave,
@@ -143,6 +145,7 @@ export function MatrixTable({
             dayTotals={dayTotals}
             grandTotalCoef={grandTotalCoef}
             grandTotalSalary={grandTotalSalary}
+            breakdown={breakdown}
             stickyLeft={stickyLeft}
             stickyRight={stickyRight}
           />

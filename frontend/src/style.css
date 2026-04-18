@@ -151,4 +151,10 @@ tbody tr { transition: background-color var(--transition); }
   .matrix-print-table tfoot th { background: #F2F4F7 !important; font-weight: 700; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .matrix-print-table thead { display: table-header-group; }
   .matrix-print-table tfoot { display: table-footer-group; }
+  .matrix-print-breakdown { margin-top: 4mm; page-break-inside: avoid; }
+  .matrix-print-breakdown h3 { font-size: 11px; font-weight: 700; margin: 0 0 2mm 0; }
+  .matrix-print-breakdown table { width: auto; border-collapse: collapse; font-size: 9px; }
+  .matrix-print-breakdown th, .matrix-print-breakdown td { border: 0.5pt solid #888; padding: 1pt 6pt; }
+  .matrix-print-breakdown th { background: #E8EEF5 !important; font-weight: 700; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .matrix-print-breakdown td.total { text-align: right; font-weight: 600; }
 }
