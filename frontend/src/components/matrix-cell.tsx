@@ -92,7 +92,7 @@ function MatrixCellInner(props: Props) {
     onFocus(userId, day)
   }
 
-  const wsTint = colorOn && wsId && wsName ? hashColor(wsName) + '22' : undefined // 22 = ~13% alpha
+  const wsTint = colorOn && wsId && wsName ? hashColor(wsName) + '1a' : undefined // 1a = ~10% alpha
 
   const bg = isSelected
     ? 'var(--primary-soft)'
