@@ -15,6 +15,8 @@ import { ResizableSplit } from '../components/resizable-split'
 import { BatchAttendance } from '../components/batch-attendance'
 import { ZoomableArea } from '../components/zoomable-area'
 import { TeamUserBar } from '../components/team-user-bar'
+import { TeamToolbar } from '../components/team-toolbar'
+import { useTodayScroll } from '../lib/use-today-scroll'
 import {
   GetTeamUsers, CreateTeamUser, DeleteTeamUser, UpdateUser, BulkCreateUsers,
   GetMonthAttendance, UpsertAttendance, DeleteAttendance,
@@ -158,6 +160,12 @@ export function TeamPage() {
     catch { toast.error('Huỷ xuất PDF') }
   }
 
+  const { hasToday, onGoToday } = useTodayScroll({
+    today, yearMonth, bindKey: true,
+    getTarget: (t) => document.querySelector(`tr[data-date="${t}"]`),
+    scrollOpts: { block: 'center' },
+  })
+
   return (
     <>
       <ResizableSplit
@@ -171,6 +179,7 @@ export function TeamPage() {
               onAdd={() => setShowAdd(true)}
               onBatch={() => setShowBatch(true)}
             />
+            {selected && <TeamToolbar hasToday={hasToday} onToday={onGoToday} />}
             {!selected
               ? <p className="text-center py-8 text-sm" style={{ color: 'var(--text-muted)' }}>Chưa có người nào. Bấm "Thêm" để bắt đầu.</p>
               : loading

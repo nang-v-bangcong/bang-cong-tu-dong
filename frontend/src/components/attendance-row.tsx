@@ -70,6 +70,7 @@ export function AttendanceRow({ date, data, worksites, isToday, onSave, onDelete
 
   return (
     <tr
+      data-date={date}
       style={{ background: rowBg, borderBottom: '1px solid var(--border-light)' }}
       className={`hover:bg-[var(--bg-hover)] ${isSunday ? 'text-[var(--danger)]' : ''}`}
     >

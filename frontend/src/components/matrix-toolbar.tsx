@@ -1,4 +1,4 @@
-import { UserPlus, Search, X, Paintbrush, Download } from 'lucide-react'
+import { UserPlus, Search, X, Paintbrush, Download, Calendar } from 'lucide-react'
 
 interface Props {
   search: string
@@ -11,6 +11,8 @@ interface Props {
   onSortChange: (by: 'name' | 'days' | 'salary', dir: 'asc' | 'desc') => void
   onExportExcel: () => void
   onExportPDF: () => void
+  hasToday: boolean
+  onToday: () => void
 }
 
 const SORT_OPTIONS: Array<{ key: 'name' | 'days' | 'salary'; label: string }> = [
@@ -24,6 +26,7 @@ export function MatrixToolbar({
   cellColorOn, onToggleCellColor,
   sortBy, sortDir, onSortChange,
   onExportExcel, onExportPDF,
+  hasToday, onToday,
 }: Props) {
   return (
     <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -71,6 +74,17 @@ export function MatrixToolbar({
           {sortDir === 'asc' ? '▲' : '▼'}
         </button>
       </div>
+
+      {hasToday && (
+        <button
+          onClick={onToday}
+          className="flex items-center gap-1 px-2 py-1 text-xs"
+          style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}
+          title="Cuộn đến ngày hôm nay (T)"
+        >
+          <Calendar size={12} /> Hôm nay
+        </button>
+      )}
 
       <button
         onClick={onToggleCellColor}

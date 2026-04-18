@@ -11,6 +11,8 @@ import { ZoomableArea } from '../components/zoomable-area'
 import { ConfirmDialog } from '../components/confirm-dialog'
 import { CopyDayDialog } from '../components/copy-day-dialog'
 import { useMatrixMutations, type BulkCells } from '../lib/use-matrix-mutations'
+import { useMatrixKeyboard } from '../lib/use-matrix-keyboard'
+import { useTodayScroll } from '../lib/use-today-scroll'
 import { type models } from '../../wailsjs/go/models'
 import {
   GetTeamMonthMatrix, GetWorksites, GetToday,
@@ -27,8 +29,6 @@ export function MatrixPage() {
     setMatrixSearch, setMatrixSort, toggleMatrixCellColor,
   } = useAppStore()
   const clearHistory = useHistoryStore((s) => s.clear)
-  const popUndo = useHistoryStore((s) => s.popUndo)
-  const popRedo = useHistoryStore((s) => s.popRedo)
 
   const [matrix, setMatrix] = useState<models.TeamMatrix | null>(null)
   const [worksites, setWorksites] = useState<Worksite[]>([])
@@ -114,27 +114,13 @@ export function MatrixPage() {
     window.print()
   }, [])
 
-  useEffect(() => {
-    const onKey = async (e: KeyboardEvent) => {
-      const t = e.target as HTMLElement
-      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
-        e.preventDefault()
-        const entry = popUndo()
-        if (!entry) { toast.info('Không còn thao tác để hoàn tác'); return }
-        try { await m.runUndo(entry); toast.success('Đã hoàn tác') }
-        catch { toast.error('Lỗi hoàn tác') }
-      } else if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
-        e.preventDefault()
-        const entry = popRedo()
-        if (!entry) { toast.info('Không còn thao tác để làm lại'); return }
-        try { await m.runRedo(entry); toast.success('Đã làm lại') }
-        catch { toast.error('Lỗi làm lại') }
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [m, popUndo, popRedo])
+  const { hasToday, onGoToday } = useTodayScroll({
+    today, yearMonth, bindKey: false,
+    getTarget: (t) => document.querySelector(`tbody td[data-day="${parseInt(t.slice(8, 10), 10)}"]`),
+    scrollOpts: { inline: 'center', block: 'nearest' },
+  })
+
+  useMatrixKeyboard({ runUndo: m.runUndo, runRedo: m.runRedo, onGoToday })
 
   if (loading && !matrix) return <p className="p-4 text-sm" style={{ color: 'var(--text-muted)' }}>Đang tải...</p>
   if (!matrix) return null
@@ -152,6 +138,8 @@ export function MatrixPage() {
         onSortChange={setMatrixSort}
         onExportExcel={handleExportExcel}
         onExportPDF={handleExportPDF}
+        hasToday={hasToday}
+        onToday={onGoToday}
       />
       <ZoomableArea storageKey="zoom-matrix" className="flex-1 min-h-0">
         <MatrixTable
