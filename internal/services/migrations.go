@@ -1,6 +1,15 @@
 package services
 
-import "database/sql"
+import (
+	"database/sql"
+	"fmt"
+	"regexp"
+)
+
+// safeIdent matches SQL identifiers we generate internally (tables/columns).
+// Defensive filter: these values are hardcoded today, but this guards against
+// accidental unsafe call sites added later.
+var safeIdent = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 
 func runMigrations(db *sql.DB) error {
 	schema := `
@@ -69,21 +78,31 @@ func runMigrations(db *sql.DB) error {
 	// Column migrations
 	addColumnIfMissing(db, "worksites", "daily_wage", "INTEGER NOT NULL DEFAULT 0")
 
-	// Guard against name collisions for users: app-layer checks had a TOCTOU
-	// window. Only create the UNIQUE index if the current data is already clean
-	// so legacy DBs with duplicates don't fail to migrate.
+	// Guard against name collisions for users. The old index was case-sensitive
+	// (so "Nam" and "nam" could coexist) — drop it and try to create a
+	// case-insensitive replacement. Only create the new index if current data
+	// has no case-insensitive duplicates, so legacy DBs don't fail to migrate.
+	db.Exec(`DROP INDEX IF EXISTS idx_users_name_unique`)
 	var dupes int
-	if err := db.QueryRow(`SELECT COUNT(*) FROM (SELECT name FROM users GROUP BY name HAVING COUNT(*) > 1)`).Scan(&dupes); err == nil && dupes == 0 {
-		db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_name_unique ON users(name)`)
+	if err := db.QueryRow(
+		`SELECT COUNT(*) FROM (SELECT 1 FROM users GROUP BY name COLLATE NOCASE HAVING COUNT(*) > 1)`,
+	).Scan(&dupes); err == nil && dupes == 0 {
+		db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_name_unique_nocase ON users(name COLLATE NOCASE)`)
 	}
 
 	return nil
 }
 
 func addColumnIfMissing(db *sql.DB, table, column, colDef string) {
+	// SQLite does not support parameterized identifiers, so we interpolate.
+	// Reject anything that isn't a plain identifier to keep this call site safe
+	// even if a future caller passes non-literal values.
+	if !safeIdent.MatchString(table) || !safeIdent.MatchString(column) {
+		return
+	}
 	var count int
 	db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info(?) WHERE name=?`, table, column).Scan(&count)
 	if count == 0 {
-		db.Exec(`ALTER TABLE ` + table + ` ADD COLUMN ` + column + ` ` + colDef)
+		db.Exec(fmt.Sprintf(`ALTER TABLE %s ADD COLUMN %s %s`, table, column, colDef))
 	}
 }
