@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { UserPlus, Search, X, Paintbrush, Download, Calendar } from 'lucide-react'
+import { UserPlus, Search, X, Paintbrush, Download, Calendar, CalendarDays } from 'lucide-react'
 import { type Worksite } from '../lib/utils'
 import { formatCoef } from '../lib/matrix-utils'
 import { PaintPopover } from './paint-popover'
@@ -23,6 +23,7 @@ interface Props {
   paintWsId: number | null
   onSetPaintMode: (on: boolean) => void
   onSetPaintPreset: (coef: number, wsId: number | null) => void
+  onFillSundaysClick: () => void
 }
 
 const SORT_OPTIONS: Array<{ key: 'name' | 'days' | 'salary'; label: string }> = [
@@ -38,6 +39,7 @@ export function MatrixToolbar({
   onExportExcel, onExportPDF,
   hasToday, onToday,
   worksites, paintMode, paintCoef, paintWsId, onSetPaintMode, onSetPaintPreset,
+  onFillSundaysClick,
 }: Props) {
   const [showPop, setShowPop] = useState(false)
   const paintBtnRef = useRef<HTMLButtonElement>(null)
@@ -122,6 +124,15 @@ export function MatrixToolbar({
         title="Bật/tắt tô màu ô"
       >
         <Paintbrush size={12} /> {cellColorOn ? 'Màu ô: BẬT' : 'Màu ô: TẮT'}
+      </button>
+
+      <button
+        onClick={onFillSundaysClick}
+        className="flex items-center gap-1 px-2 py-1 text-xs"
+        style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}
+        title="Chấm tất cả Chủ nhật trong tháng"
+      >
+        <CalendarDays size={12} /> Chấm CN
       </button>
 
       <div className="relative">

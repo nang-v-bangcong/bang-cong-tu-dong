@@ -1,13 +1,13 @@
 import { useCallback, useRef } from 'react'
 import { toast } from 'sonner'
-import { dateOf } from './matrix-utils'
+import { dateOf, listSundays } from './matrix-utils'
 import { applySnapshot } from './matrix-history'
 import { type CellSnap } from '../stores/matrix-history-store'
 import { type models, type services } from '../../wailsjs/go/models'
 import {
   UpsertAttendance, UpsertDayNote,
   BulkUpsertWorksite, BulkUpsertCell, BulkUpsertCells, BulkDeleteAttendance,
-  FillDayForAllUsers, CopyDayForAll,
+  FillDayForAllUsers, FillSundaysForAllUsers, CopyDayForAll,
 } from '../../wailsjs/go/main/App'
 import { useMatrixHistoryRecorder, type BulkCells } from './use-matrix-history-recorder'
 
@@ -134,6 +134,22 @@ export function useMatrixMutations({ yearMonth, matrix, reload }: Opts) {
     } catch { toast.error('Lỗi chấm công theo ngày') }
   }, [ym, recordFromKeys])
 
+  const onFillSundays = useCallback(async (coef: number, wsID: number | null, overwrite: boolean) => {
+    const current = matrixRef.current
+    const sundays = listSundays(ym)
+    const keys: BulkCells = current
+      ? current.rows.flatMap((r) => sundays.map((d) => ({ userId: r.userId, day: d })))
+      : []
+    try {
+      await recordFromKeys(keys, async () => {
+        const n = await FillSundaysForAllUsers(ym, coef, wsID, overwrite)
+        toast.success(n > 0 ? `Đã chấm ${n} Chủ nhật` : 'Không có ô nào thay đổi')
+      })
+    } catch (e: any) {
+      toast.error(String(e?.message ?? e ?? 'Lỗi chấm Chủ nhật'))
+    }
+  }, [ym, recordFromKeys])
+
   const onCopyDayConfirm = useCallback(async (srcDay: number, dstDay: number, overwrite: boolean) => {
     const current = matrixRef.current
     const keys: BulkCells = current ? current.rows.map((r) => ({ userId: r.userId, day: dstDay })) : []
@@ -180,7 +196,7 @@ export function useMatrixMutations({ yearMonth, matrix, reload }: Opts) {
 
   return {
     onCellSave, onBulkAssign, onBulkCoef, onBulkDelete,
-    onFillRange, onPasteGrid, onFillDay, onCopyDayConfirm, onCopyPrev, onDayNoteSave,
+    onFillRange, onPasteGrid, onFillDay, onFillSundays, onCopyDayConfirm, onCopyPrev, onDayNoteSave,
     runUndo, runRedo,
   }
 }

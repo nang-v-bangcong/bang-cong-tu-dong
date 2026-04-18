@@ -15,6 +15,13 @@ export function isSundayOf(yearMonth: string, day: number): boolean {
   return new Date(y, m - 1, day).getDay() === 0
 }
 
+export function listSundays(yearMonth: string): number[] {
+  const dim = getMonthDays(yearMonth)
+  const out: number[] = []
+  for (let d = 1; d <= dim; d++) if (isSundayOf(yearMonth, d)) out.push(d)
+  return out
+}
+
 // Hash string to a stable HSL color — same name always gets same color.
 export function hashColor(name: string): string {
   if (!name) return 'transparent'

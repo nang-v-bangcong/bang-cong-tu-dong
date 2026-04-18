@@ -11,6 +11,7 @@ import { AddPersonDialog } from '../components/add-person-dialog'
 import { ZoomableArea } from '../components/zoomable-area'
 import { ConfirmDialog } from '../components/confirm-dialog'
 import { CopyDayDialog } from '../components/copy-day-dialog'
+import { FillSundaysDialog } from '../components/fill-sundays-dialog'
 import { MatrixRowDialogs, type RowMenuState } from '../components/matrix-row-dialogs'
 import { useMatrixMutations, type BulkCells } from '../lib/use-matrix-mutations'
 import { useMatrixKeyboard } from '../lib/use-matrix-keyboard'
@@ -37,6 +38,7 @@ export function MatrixPage() {
   const [copyDialog, setCopyDialog] = useState<{ srcDay: number } | null>(null)
   const [showAddPerson, setShowAddPerson] = useState(false)
   const [rowMenu, setRowMenu] = useState<RowMenuState | null>(null)
+  const [showFillSundays, setShowFillSundays] = useState(false)
 
   const load = useCallback(async (): Promise<models.TeamMatrix | null> => {
     try {
@@ -140,6 +142,7 @@ export function MatrixPage() {
         worksites={worksites}
         paintMode={paintMode} paintCoef={paintCoef} paintWsId={paintWsId}
         onSetPaintMode={setPaintMode} onSetPaintPreset={setPaintPreset}
+        onFillSundaysClick={() => setShowFillSundays(true)}
       />
       <ZoomableArea storageKey="zoom-matrix" className="flex-1 min-h-0">
         <MatrixTable
@@ -173,6 +176,14 @@ export function MatrixPage() {
           daysInMonth={matrix.daysInMonth}
           onConfirm={async (src, dst, ov) => { await m.onCopyDayConfirm(src, dst, ov); setCopyDialog(null) }}
           onCancel={() => setCopyDialog(null)}
+        />
+      )}
+      {showFillSundays && (
+        <FillSundaysDialog
+          yearMonth={yearMonth}
+          worksites={worksites}
+          onConfirm={async (coef, wsId, ov) => { await m.onFillSundays(coef, wsId, ov); setShowFillSundays(false) }}
+          onCancel={() => setShowFillSundays(false)}
         />
       )}
       <AddPersonDialog

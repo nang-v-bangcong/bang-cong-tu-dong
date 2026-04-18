@@ -3,6 +3,7 @@ import {
   getMonthDays,
   getWeekdayShort,
   isSundayOf,
+  listSundays,
   hashColor,
   cellKey,
   parseCellKey,
@@ -39,6 +40,19 @@ describe('getWeekdayShort', () => {
 describe('isSundayOf', () => {
   it('true for 2026-04-05', () => expect(isSundayOf('2026-04', 5)).toBe(true))
   it('false for 2026-04-06', () => expect(isSundayOf('2026-04', 6)).toBe(false))
+})
+
+describe('listSundays', () => {
+  it('returns 4 Sundays for April 2026', () => {
+    expect(listSundays('2026-04')).toEqual([5, 12, 19, 26])
+  })
+  it('returns 5 Sundays for March 2026', () => {
+    expect(listSundays('2026-03')).toEqual([1, 8, 15, 22, 29])
+  })
+  it('returns 4 Sundays for Feb 2026 non-leap', () => {
+    // Feb 2026: 1, 8, 15, 22
+    expect(listSundays('2026-02')).toEqual([1, 8, 15, 22])
+  })
 })
 
 describe('hashColor', () => {
