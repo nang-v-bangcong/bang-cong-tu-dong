@@ -11,6 +11,7 @@ import { AddPersonDialog } from '../components/add-person-dialog'
 import { ZoomableArea } from '../components/zoomable-area'
 import { ConfirmDialog } from '../components/confirm-dialog'
 import { CopyDayDialog } from '../components/copy-day-dialog'
+import { MatrixRowDialogs, type RowMenuState } from '../components/matrix-row-dialogs'
 import { useMatrixMutations, type BulkCells } from '../lib/use-matrix-mutations'
 import { useMatrixKeyboard } from '../lib/use-matrix-keyboard'
 import { useTodayScroll } from '../lib/use-today-scroll'
@@ -35,6 +36,7 @@ export function MatrixPage() {
   const [confirm, setConfirm] = useState<Confirm | null>(null)
   const [copyDialog, setCopyDialog] = useState<{ srcDay: number } | null>(null)
   const [showAddPerson, setShowAddPerson] = useState(false)
+  const [rowMenu, setRowMenu] = useState<RowMenuState | null>(null)
 
   const load = useCallback(async (): Promise<models.TeamMatrix | null> => {
     try {
@@ -77,15 +79,11 @@ export function MatrixPage() {
   const handleBulkAddPerson = useCallback(async (names: string[]) => {
     try {
       const res = await BulkCreateUsers(names)
-      const c = res.created?.length ?? 0
-      const skippedList = res.skipped ?? []
-      const s = skippedList.length
-      if (c > 0) toast.success(`Đã thêm ${c} người`)
-      if (s > 0) {
-        toast.warning(`${s} tên bị trùng, đã bỏ qua: ${skippedList.join(', ')}. Hãy thêm họ hoặc số để phân biệt.`, { duration: 8000 })
-      } else if (c === 0) {
-        toast.info('Tất cả tên đã tồn tại')
-      }
+      const skipped = res.skipped ?? []
+      const created = res.created?.length ?? 0
+      if (created > 0) toast.success(`Đã thêm ${created} người`)
+      if (skipped.length > 0) toast.warning(`${skipped.length} tên bị trùng, đã bỏ qua: ${skipped.join(', ')}. Hãy thêm họ hoặc số để phân biệt.`, { duration: 8000 })
+      else if (created === 0) toast.info('Tất cả tên đã tồn tại')
       triggerRefresh()
     } catch { toast.error('Lỗi thêm nhiều người') }
   }, [triggerRefresh])
@@ -93,11 +91,8 @@ export function MatrixPage() {
   const handleExportExcel = useCallback(async () => {
     try {
       const path = await ExportMatrixExcel(yearMonth)
-      if (!path) return
-      toast.success(`Đã lưu: ${path}`)
-    } catch (e: any) {
-      toast.error('Lỗi xuất Excel: ' + (e?.message ?? e ?? ''))
-    }
+      if (path) toast.success(`Đã lưu: ${path}`)
+    } catch (e: any) { toast.error('Lỗi xuất Excel: ' + (e?.message ?? e ?? '')) }
   }, [yearMonth])
 
   const handleExportPDF = useCallback(() => {
@@ -168,15 +163,10 @@ export function MatrixPage() {
           onPasteGrid={m.onPasteGrid}
           onFillRange={m.onFillRange}
           onDayNoteSave={m.onDayNoteSave}
+          onRowMenu={(userId, userName, x, y) => setRowMenu({ userId, userName, x, y })}
         />
       </ZoomableArea>
-      <ConfirmDialog
-        open={!!confirm}
-        title="Xác nhận"
-        message={confirm?.msg ?? ''}
-        onConfirm={() => confirm?.onOK()}
-        onCancel={() => setConfirm(null)}
-      />
+      <ConfirmDialog open={!!confirm} title="Xác nhận" message={confirm?.msg ?? ''} onConfirm={() => confirm?.onOK()} onCancel={() => setConfirm(null)} />
       {copyDialog && (
         <CopyDayDialog
           srcDay={copyDialog.srcDay}
@@ -190,6 +180,13 @@ export function MatrixPage() {
         onClose={() => setShowAddPerson(false)}
         onSave={handleAddPerson}
         onBulkSave={handleBulkAddPerson}
+      />
+      <MatrixRowDialogs
+        yearMonth={yearMonth}
+        users={users}
+        rowMenu={rowMenu}
+        onClose={() => setRowMenu(null)}
+        onChanged={triggerRefresh}
       />
       <MatrixPrintView matrix={matrix} breakdown={breakdown} />
     </div>

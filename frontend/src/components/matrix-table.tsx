@@ -38,13 +38,14 @@ interface Props {
   onPasteGrid: (items: Array<{ userId: number; day: number; coef: number }>) => void
   onFillRange: (cells: BulkCells, coef: number, wsId: number | null) => void
   onDayNoteSave: (day: number, note: string) => void
+  onRowMenu?: (userId: number, userName: string, x: number, y: number) => void
 }
 
 export function MatrixTable({
   matrix, worksites, breakdown, search, sortBy, sortDir, cellColorOn, today,
   paintMode, paintCoef, paintWsId,
   onCellSave, onBulkAssign, onBulkCoef, onBulkDelete,
-  onFillDay, onClearDay, onCopyDay, onCopyPrev, onPasteGrid, onFillRange, onDayNoteSave,
+  onFillDay, onClearDay, onCopyDay, onCopyPrev, onPasteGrid, onFillRange, onDayNoteSave, onRowMenu,
 }: Props) {
   const { yearMonth, daysInMonth, dayNotes, dayTotals } = matrix
   const days = useMemo(() => Array.from({ length: daysInMonth }, (_, i) => i + 1), [daysInMonth])
@@ -130,6 +131,7 @@ export function MatrixTable({
                 onSelect={sel.handleSelect}
                 onFocus={sel.handleFocus}
                 onFillStart={(u, dd, coef, wsId) => dragFill.start({ userId: u, day: dd, coef, wsID: wsId })}
+                onRowMenu={onRowMenu}
               />
             ))}
             {rows.length === 0 && (
