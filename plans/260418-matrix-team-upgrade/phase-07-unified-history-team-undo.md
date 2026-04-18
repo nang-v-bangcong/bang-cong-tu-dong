@@ -11,8 +11,8 @@
 - **Date:** 2026-04-18
 - **Description:** Refactor `matrix-history-store.ts` thành `history-store.ts` hỗ trợ 2 stack keyed context `'matrix' | 'team'`. Tạo `use-team-history-recorder.ts`. Thêm `team-toolbar.tsx` undo/redo button + Ctrl+Z/Y cho team. Nút undo/redo visible trong matrix toolbar với counter.
 - **Priority:** Cao (user chờ feature này để sửa nhầm ở Team tab)
-- **Implementation status:** Pending
-- **Review status:** Pending
+- **Implementation status:** Completed (commit 7a60f44)
+- **Review status:** Pending (chờ smoke test thủ công)
 
 ## Key Insights
 
@@ -147,17 +147,17 @@ components/matrix-toolbar.tsx, team-toolbar.tsx
 
 ## Todo list
 
-- [ ] Rename `matrix-history-store.ts` → `history-store.ts` + cập nhật imports.
-- [ ] Refactor store 2 stacks + actions có context.
-- [ ] Cập nhật test store.
-- [ ] Cập nhật `use-matrix-history-recorder.ts` với context.
-- [ ] Tạo `use-team-history-recorder.ts`.
-- [ ] `team.tsx`: wrap handlers + keyboard + clearHistory effect.
-- [ ] `matrix-toolbar.tsx`: undo/redo button + badge.
-- [ ] `team-toolbar.tsx`: undo/redo button + badge.
-- [ ] `matrix.tsx`: wiring counts + handlers.
-- [ ] Smoke test đầy đủ.
-- [ ] Vitest + wails build pass.
+- [x] Rename `matrix-history-store.ts` → `history-store.ts` + cập nhật imports.
+- [x] Refactor store 2 stacks + actions có context.
+- [x] Cập nhật test store.
+- [x] Cập nhật `use-matrix-history-recorder.ts` với context.
+- [x] Tạo `use-team-history-recorder.ts`.
+- [x] `team.tsx`: wrap handlers + keyboard + clearHistory effect (tách thêm `use-team-attendance.ts` để team.tsx = 192 dòng).
+- [x] `matrix-toolbar.tsx`: undo/redo button + badge (component chung `undo-redo-buttons.tsx`).
+- [x] `team-toolbar.tsx`: undo/redo button + badge.
+- [x] `matrix.tsx`: wiring counts + handlers.
+- [ ] Smoke test đầy đủ (chờ user thao tác trên app thật).
+- [x] Vitest + wails build pass (119/119, build OK).
 
 ## Success Criteria
 

@@ -18,7 +18,7 @@
 | 4 | [phase-04-row-context-menu.md](./phase-04-row-context-menu.md) | pending | B1 menu chuột phải hàng: sửa, xuất PDF, xóa | pending |
 | 5 | [phase-05-worksite-footer-breakdown.md](./phase-05-worksite-footer-breakdown.md) | completed | B3 breakdown theo công trường ở footer + print | pending |
 | 6 | [phase-06-fill-sundays.md](./phase-06-fill-sundays.md) | pending | B2 API `FillSundaysForAllUsers` + dialog | pending |
-| 7 | [phase-07-unified-history-team-undo.md](./phase-07-unified-history-team-undo.md) | pending | B4 refactor 1 store 2 stack + B5 undo/redo cho Team tab + nút visible | pending |
+| 7 | [phase-07-unified-history-team-undo.md](./phase-07-unified-history-team-undo.md) | completed | B4 refactor 1 store 2 stack + B5 undo/redo cho Team tab + nút visible | pending |
 | 8 | [phase-08-polish.md](./phase-08-polish.md) | pending | C1 Ctrl+C TSV + C2 Help modal + C3 alpha tint | pending |
 
 ## Ship order (đề xuất)
