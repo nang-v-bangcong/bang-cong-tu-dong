@@ -13,6 +13,7 @@ import { ConfirmDialog } from '../components/confirm-dialog'
 import { CopyDayDialog } from '../components/copy-day-dialog'
 import { FillSundaysDialog } from '../components/fill-sundays-dialog'
 import { MatrixRowDialogs, type RowMenuState } from '../components/matrix-row-dialogs'
+import { HelpModal } from '../components/help-modal'
 import { useMatrixMutations, type BulkCells } from '../lib/use-matrix-mutations'
 import { useMatrixKeyboard } from '../lib/use-matrix-keyboard'
 import { useTodayScroll } from '../lib/use-today-scroll'
@@ -40,6 +41,19 @@ export function MatrixPage() {
   const [showAddPerson, setShowAddPerson] = useState(false)
   const [rowMenu, setRowMenu] = useState<RowMenuState | null>(null)
   const [showFillSundays, setShowFillSundays] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== '?') return
+      const t = e.target as HTMLElement | null
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return
+      e.preventDefault()
+      setShowHelp((s) => !s)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   const load = useCallback(async (): Promise<models.TeamMatrix | null> => {
     try {
@@ -163,6 +177,7 @@ export function MatrixPage() {
         redoCount={matrixCounts.future.length}
         onUndo={onUndoClick}
         onRedo={onRedoClick}
+        onHelpClick={() => setShowHelp(true)}
       />
       <ZoomableArea storageKey="zoom-matrix" className="flex-1 min-h-0">
         <MatrixTable
@@ -220,6 +235,7 @@ export function MatrixPage() {
         onChanged={triggerRefresh}
       />
       <MatrixPrintView matrix={matrix} breakdown={breakdown} />
+      <HelpModal open={showHelp} onClose={() => setShowHelp(false)} />
     </div>
   )
 }

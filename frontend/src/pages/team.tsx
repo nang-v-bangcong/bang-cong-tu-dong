@@ -16,6 +16,7 @@ import { BatchAttendance } from '../components/batch-attendance'
 import { ZoomableArea } from '../components/zoomable-area'
 import { TeamUserBar } from '../components/team-user-bar'
 import { TeamToolbar } from '../components/team-toolbar'
+import { HelpModal } from '../components/help-modal'
 import { useTodayScroll } from '../lib/use-today-scroll'
 import { useTeamAttendance } from '../lib/use-team-attendance'
 import {
@@ -44,6 +45,19 @@ export function TeamPage() {
   const [worksites, setWorksites] = useState<Worksite[]>([])
   const [wsBreakdown, setWsBreakdown] = useState<WsSummary[]>([])
   const [today, setToday] = useState('')
+  const [showHelp, setShowHelp] = useState(false)
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== '?') return
+      const t = e.target as HTMLElement | null
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return
+      e.preventDefault()
+      setShowHelp((s) => !s)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   const loadUsers = useCallback(async () => {
     const mapped = mapUsers(await GetTeamUsers())
@@ -158,7 +172,7 @@ export function TeamPage() {
               onAdd={() => setShowAdd(true)}
               onBatch={() => setShowBatch(true)}
             />
-            {selected && <TeamToolbar hasToday={hasToday} onToday={onGoToday} undoCount={undoCount} redoCount={redoCount} onUndo={onUndo} onRedo={onRedo} />}
+            {selected && <TeamToolbar hasToday={hasToday} onToday={onGoToday} undoCount={undoCount} redoCount={redoCount} onUndo={onUndo} onRedo={onRedo} onHelpClick={() => setShowHelp(true)} />}
             {!selected
               ? <p className="text-center py-8 text-sm" style={{ color: 'var(--text-muted)' }}>Chưa có người nào. Bấm "Thêm" để bắt đầu.</p>
               : loading
@@ -187,6 +201,7 @@ export function TeamPage() {
       {selected && <EditUserDialog open={showEdit} name={selected.name} dailyWage={selected.dailyWage} onSave={handleEditUser} onClose={() => setShowEdit(false)} />}
       <ConfirmDialog open={!!deleteTarget} title="Xóa người" message={`Bạn có chắc muốn xóa "${deleteTarget?.name}"? Dữ liệu chấm công sẽ bị mất.`} onConfirm={handleConfirmDelete} onCancel={() => setDeleteTarget(null)} />
       <BatchAttendance open={showBatch} users={users} onClose={() => setShowBatch(false)} onDone={() => { reload(); if (selected) loadPersonData(selected) }} />
+      <HelpModal open={showHelp} onClose={() => setShowHelp(false)} />
     </>
   )
 }

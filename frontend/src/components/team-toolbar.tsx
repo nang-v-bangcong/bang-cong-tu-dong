@@ -1,4 +1,4 @@
-import { Calendar } from 'lucide-react'
+import { Calendar, HelpCircle } from 'lucide-react'
 import { UndoRedoButtons } from './undo-redo-buttons'
 
 interface Props {
@@ -8,9 +8,10 @@ interface Props {
   redoCount: number
   onUndo: () => void
   onRedo: () => void
+  onHelpClick: () => void
 }
 
-export function TeamToolbar({ hasToday, onToday, undoCount, redoCount, onUndo, onRedo }: Props) {
+export function TeamToolbar({ hasToday, onToday, undoCount, redoCount, onUndo, onRedo, onHelpClick }: Props) {
   return (
     <div className="flex items-center gap-2 flex-wrap">
       <UndoRedoButtons undoCount={undoCount} redoCount={redoCount} onUndo={onUndo} onRedo={onRedo} />
@@ -24,6 +25,18 @@ export function TeamToolbar({ hasToday, onToday, undoCount, redoCount, onUndo, o
           <Calendar size={12} /> Hôm nay
         </button>
       )}
+      <button
+        onClick={onHelpClick}
+        className="ml-auto flex items-center justify-center"
+        style={{
+          width: 26, height: 26,
+          border: '1px solid var(--border)', borderRadius: '50%',
+          color: 'var(--text-muted)',
+        }}
+        title="Phím tắt (Shift+/)"
+      >
+        <HelpCircle size={14} />
+      </button>
     </div>
   )
 }

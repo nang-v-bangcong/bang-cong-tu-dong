@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { UserPlus, Search, X, Paintbrush, Download, Calendar, CalendarDays } from 'lucide-react'
+import { UserPlus, Search, X, Paintbrush, Download, Calendar, CalendarDays, HelpCircle } from 'lucide-react'
 import { type Worksite } from '../lib/utils'
 import { formatCoef } from '../lib/matrix-utils'
 import { PaintPopover } from './paint-popover'
@@ -29,6 +29,7 @@ interface Props {
   redoCount: number
   onUndo: () => void
   onRedo: () => void
+  onHelpClick: () => void
 }
 
 const SORT_OPTIONS: Array<{ key: 'name' | 'days' | 'salary'; label: string }> = [
@@ -46,6 +47,7 @@ export function MatrixToolbar({
   worksites, paintMode, paintCoef, paintWsId, onSetPaintMode, onSetPaintPreset,
   onFillSundaysClick,
   undoCount, redoCount, onUndo, onRedo,
+  onHelpClick,
 }: Props) {
   const [showPop, setShowPop] = useState(false)
   const paintBtnRef = useRef<HTMLButtonElement>(null)
@@ -184,6 +186,18 @@ export function MatrixToolbar({
           style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}
         >
           <Download size={12} /> PDF
+        </button>
+        <button
+          onClick={onHelpClick}
+          className="flex items-center justify-center"
+          style={{
+            width: 26, height: 26,
+            border: '1px solid var(--border)', borderRadius: '50%',
+            color: 'var(--text-muted)',
+          }}
+          title="Phím tắt (Shift+/)"
+        >
+          <HelpCircle size={14} />
         </button>
       </div>
     </div>
