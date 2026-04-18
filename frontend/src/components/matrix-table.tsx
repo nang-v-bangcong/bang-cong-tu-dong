@@ -22,6 +22,9 @@ interface Props {
   sortDir: 'asc' | 'desc'
   cellColorOn: boolean
   today: string // YYYY-MM-DD
+  paintMode: boolean
+  paintCoef: number
+  paintWsId: number | null
   onCellSave: (userId: number, day: number, coef: number, wsId: number | null) => void
   onBulkAssign: (cells: BulkCells, wsId: number | null) => void
   onBulkCoef: (cells: BulkCells, coef: number) => void
@@ -37,6 +40,7 @@ interface Props {
 
 export function MatrixTable({
   matrix, worksites, search, sortBy, sortDir, cellColorOn, today,
+  paintMode, paintCoef, paintWsId,
   onCellSave, onBulkAssign, onBulkCoef, onBulkDelete,
   onFillDay, onClearDay, onCopyDay, onCopyPrev, onPasteGrid, onFillRange, onDayNoteSave,
 }: Props) {
@@ -113,6 +117,9 @@ export function MatrixTable({
                 preview={dragFill.preview}
                 todayDay={todayDay}
                 colorOn={cellColorOn}
+                paintMode={paintMode}
+                paintCoef={paintCoef}
+                paintWsId={paintWsId}
                 editSignal={editSignal}
                 editChar={editChar}
                 stickyLeft={stickyLeft}

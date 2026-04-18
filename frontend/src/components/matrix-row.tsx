@@ -13,6 +13,9 @@ interface Props {
   preview: Set<string>
   todayDay: number | null
   colorOn: boolean
+  paintMode: boolean
+  paintCoef: number
+  paintWsId: number | null
   editSignal: number
   editChar: string | undefined
   stickyLeft: React.CSSProperties
@@ -24,7 +27,7 @@ interface Props {
 }
 
 export function MatrixBodyRow(p: Props) {
-  const { row, days, yearMonth, worksites, selected, focus, preview, todayDay, colorOn, editSignal, editChar, stickyLeft, stickyRight } = p
+  const { row, days, yearMonth, worksites, selected, focus, preview, todayDay, colorOn, paintMode, paintCoef, paintWsId, editSignal, editChar, stickyLeft, stickyRight } = p
   return (
     <tr>
       <td style={{ ...stickyLeft, padding: '4px 8px', fontWeight: 600, borderBottom: '1px solid var(--border-light)' }}>{row.userName}</td>
@@ -41,6 +44,9 @@ export function MatrixBodyRow(p: Props) {
           isSunday={isSundayOf(yearMonth, d)}
           isToday={todayDay === d}
           colorOn={colorOn}
+          paintMode={paintMode}
+          paintCoef={paintCoef}
+          paintWsId={paintWsId}
           startEditingSignal={editSignal}
           initialEditChar={focus?.userId === row.userId && focus?.day === d ? editChar : undefined}
           onSave={p.onCellSave}

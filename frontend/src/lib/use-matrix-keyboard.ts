@@ -6,9 +6,10 @@ interface Opts {
   runUndo: (entry: HistoryEntry) => Promise<void>
   runRedo: (entry: HistoryEntry) => Promise<void>
   onGoToday: () => void
+  onTogglePaint?: () => void
 }
 
-export function useMatrixKeyboard({ runUndo, runRedo, onGoToday }: Opts) {
+export function useMatrixKeyboard({ runUndo, runRedo, onGoToday, onTogglePaint }: Opts) {
   const popUndo = useHistoryStore((s) => s.popUndo)
   const popRedo = useHistoryStore((s) => s.popRedo)
 
@@ -31,9 +32,13 @@ export function useMatrixKeyboard({ runUndo, runRedo, onGoToday }: Opts) {
       } else if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 't' || e.key === 'T')) {
         e.preventDefault()
         onGoToday()
+      } else if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'b' || e.key === 'B')) {
+        if (!onTogglePaint) return
+        e.preventDefault()
+        onTogglePaint()
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [runUndo, runRedo, onGoToday, popUndo, popRedo])
+  }, [runUndo, runRedo, onGoToday, onTogglePaint, popUndo, popRedo])
 }

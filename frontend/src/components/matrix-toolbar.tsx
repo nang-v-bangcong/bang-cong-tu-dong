@@ -1,4 +1,8 @@
+import { useRef, useState } from 'react'
 import { UserPlus, Search, X, Paintbrush, Download, Calendar } from 'lucide-react'
+import { type Worksite } from '../lib/utils'
+import { formatCoef } from '../lib/matrix-utils'
+import { PaintPopover } from './paint-popover'
 
 interface Props {
   search: string
@@ -13,6 +17,12 @@ interface Props {
   onExportPDF: () => void
   hasToday: boolean
   onToday: () => void
+  worksites: Worksite[]
+  paintMode: boolean
+  paintCoef: number
+  paintWsId: number | null
+  onSetPaintMode: (on: boolean) => void
+  onSetPaintPreset: (coef: number, wsId: number | null) => void
 }
 
 const SORT_OPTIONS: Array<{ key: 'name' | 'days' | 'salary'; label: string }> = [
@@ -27,7 +37,22 @@ export function MatrixToolbar({
   sortBy, sortDir, onSortChange,
   onExportExcel, onExportPDF,
   hasToday, onToday,
+  worksites, paintMode, paintCoef, paintWsId, onSetPaintMode, onSetPaintPreset,
 }: Props) {
+  const [showPop, setShowPop] = useState(false)
+  const paintBtnRef = useRef<HTMLButtonElement>(null)
+
+  const wsName = paintWsId ? worksites.find((w) => w.id === paintWsId)?.name ?? '' : ''
+
+  const togglePaintBtn = () => {
+    if (paintMode) { onSetPaintMode(false); return }
+    setShowPop((s) => !s)
+  }
+
+  const paintLabel = paintMode
+    ? `🖌️ ${formatCoef(paintCoef) || '1'}${wsName ? ' · ' + wsName : ''}`
+    : '🖌️ Cọ'
+
   return (
     <div className="flex items-center gap-2 mb-2 flex-wrap">
       <button
@@ -90,8 +115,7 @@ export function MatrixToolbar({
         onClick={onToggleCellColor}
         className="flex items-center gap-1 px-2 py-1 text-xs"
         style={{
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-sm)',
+          border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)',
           background: cellColorOn ? 'var(--primary)' : 'transparent',
           color: cellColorOn ? '#fff' : undefined,
         }}
@@ -99,6 +123,34 @@ export function MatrixToolbar({
       >
         <Paintbrush size={12} /> {cellColorOn ? 'Màu ô: BẬT' : 'Màu ô: TẮT'}
       </button>
+
+      <div className="relative">
+        <button
+          ref={paintBtnRef}
+          onClick={togglePaintBtn}
+          className="flex items-center gap-1 px-2 py-1 text-xs"
+          style={{
+            border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)',
+            background: paintMode ? 'var(--warning, #f59e0b)' : 'transparent',
+            color: paintMode ? '#fff' : undefined,
+            fontWeight: paintMode ? 600 : 400,
+          }}
+          title={paintMode ? 'Tắt chế độ cọ (B)' : 'Bật chế độ cọ (B)'}
+        >
+          {paintLabel}
+        </button>
+        {showPop && !paintMode && (
+          <PaintPopover
+            worksites={worksites}
+            paintCoef={paintCoef}
+            paintWsId={paintWsId}
+            anchorRef={paintBtnRef}
+            onSetPaintPreset={onSetPaintPreset}
+            onConfirm={() => { onSetPaintMode(true); setShowPop(false) }}
+            onClose={() => setShowPop(false)}
+          />
+        )}
+      </div>
 
       <div className="ml-auto flex items-center gap-1">
         <button

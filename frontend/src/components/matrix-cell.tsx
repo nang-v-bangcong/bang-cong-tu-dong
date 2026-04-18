@@ -17,6 +17,9 @@ interface Props {
   isSunday: boolean
   isToday: boolean
   colorOn: boolean
+  paintMode: boolean
+  paintCoef: number
+  paintWsId: number | null
   startEditingSignal: number // increment to force open editor (for auto-enter on typing)
   initialEditChar?: string
   onSave: (userId: number, day: number, coef: number, wsId: number | null) => void
@@ -29,6 +32,7 @@ function MatrixCellInner(props: Props) {
   const {
     userId, day, cell, worksites,
     isSelected, isFocused, isPreview, isSunday, isToday, colorOn,
+    paintMode, paintCoef, paintWsId,
     startEditingSignal, initialEditChar,
     onSave, onSelect, onFocus, onFillStart,
   } = props
@@ -82,9 +86,10 @@ function MatrixCellInner(props: Props) {
   }
 
   const handleClick = (e: React.MouseEvent) => {
-    if (e.shiftKey) onSelect(userId, day, 'range')
-    else if (e.ctrlKey || e.metaKey) onSelect(userId, day, 'toggle')
-    else { onFocus(userId, day) }
+    if (e.shiftKey) { onSelect(userId, day, 'range'); return }
+    if (e.ctrlKey || e.metaKey) { onSelect(userId, day, 'toggle'); return }
+    if (paintMode && !cell?.attendanceId) { onSave(userId, day, paintCoef, paintWsId); return }
+    onFocus(userId, day)
   }
 
   const wsTint = colorOn && wsId && wsName ? hashColor(wsName) + '22' : undefined // 22 = ~13% alpha
@@ -114,7 +119,7 @@ function MatrixCellInner(props: Props) {
       data-day={day}
       onClick={handleClick}
       onDoubleClick={openPicker}
-      className="relative text-center text-xs select-none cursor-cell"
+      className="relative text-center text-xs select-none"
       style={{
         minWidth: 42,
         width: 42,
@@ -123,6 +128,7 @@ function MatrixCellInner(props: Props) {
         background: bg,
         border,
         boxSizing: 'border-box',
+        cursor: paintMode && !cell?.attendanceId ? 'crosshair' : 'cell',
       }}
     >
       {editing ? (
@@ -185,14 +191,9 @@ function MatrixCellInner(props: Props) {
 }
 
 export const MatrixCell = memo(MatrixCellInner, (a, b) => (
-  a.cell === b.cell &&
-  a.isSelected === b.isSelected &&
-  a.isFocused === b.isFocused &&
-  a.isPreview === b.isPreview &&
-  a.isToday === b.isToday &&
-  a.colorOn === b.colorOn &&
-  a.startEditingSignal === b.startEditingSignal &&
-  a.initialEditChar === b.initialEditChar &&
-  a.worksites === b.worksites &&
-  a.isSunday === b.isSunday
+  a.cell === b.cell && a.isSelected === b.isSelected && a.isFocused === b.isFocused &&
+  a.isPreview === b.isPreview && a.isToday === b.isToday && a.colorOn === b.colorOn &&
+  a.paintMode === b.paintMode && a.paintCoef === b.paintCoef && a.paintWsId === b.paintWsId &&
+  a.startEditingSignal === b.startEditingSignal && a.initialEditChar === b.initialEditChar &&
+  a.worksites === b.worksites && a.isSunday === b.isSunday
 ))

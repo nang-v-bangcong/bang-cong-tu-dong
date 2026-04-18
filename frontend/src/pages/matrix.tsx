@@ -26,8 +26,8 @@ export function MatrixPage() {
   const {
     yearMonth, refreshTrigger, triggerRefresh,
     matrixSearch, matrixSortBy, matrixSortDir, matrixCellColor,
-    setMatrixSearch, setMatrixSort, toggleMatrixCellColor,
-  } = useAppStore()
+    paintMode, paintCoef, paintWsId, setPaintMode, setPaintPreset,
+    setMatrixSearch, setMatrixSort, toggleMatrixCellColor } = useAppStore()
   const clearHistory = useHistoryStore((s) => s.clear)
 
   const [matrix, setMatrix] = useState<models.TeamMatrix | null>(null)
@@ -116,11 +116,17 @@ export function MatrixPage() {
 
   const { hasToday, onGoToday } = useTodayScroll({
     today, yearMonth, bindKey: false,
-    getTarget: (t) => document.querySelector(`tbody td[data-day="${parseInt(t.slice(8, 10), 10)}"]`),
-    scrollOpts: { inline: 'center', block: 'nearest' },
+    getTarget: (t) => {
+      const d = parseInt(t.slice(8, 10), 10)
+      const cell = document.querySelector(`tbody tr:first-child td[data-day="${d}"]`) as HTMLElement | null
+      cell?.click()
+      return cell
+    },
+    scrollOpts: { inline: 'center', block: 'nearest', behavior: 'smooth' },
   })
 
-  useMatrixKeyboard({ runUndo: m.runUndo, runRedo: m.runRedo, onGoToday })
+  const togglePaint = useCallback(() => { setPaintMode(!paintMode) }, [paintMode, setPaintMode])
+  useMatrixKeyboard({ runUndo: m.runUndo, runRedo: m.runRedo, onGoToday, onTogglePaint: togglePaint })
 
   if (loading && !matrix) return <p className="p-4 text-sm" style={{ color: 'var(--text-muted)' }}>Đang tải...</p>
   if (!matrix) return null
@@ -140,6 +146,9 @@ export function MatrixPage() {
         onExportPDF={handleExportPDF}
         hasToday={hasToday}
         onToday={onGoToday}
+        worksites={worksites}
+        paintMode={paintMode} paintCoef={paintCoef} paintWsId={paintWsId}
+        onSetPaintMode={setPaintMode} onSetPaintPreset={setPaintPreset}
       />
       <ZoomableArea storageKey="zoom-matrix" className="flex-1 min-h-0">
         <MatrixTable
@@ -150,6 +159,7 @@ export function MatrixPage() {
           sortDir={matrixSortDir}
           cellColorOn={matrixCellColor}
           today={today}
+          paintMode={paintMode} paintCoef={paintCoef} paintWsId={paintWsId}
           onCellSave={m.onCellSave}
           onBulkAssign={m.onBulkAssign}
           onBulkCoef={m.onBulkCoef}

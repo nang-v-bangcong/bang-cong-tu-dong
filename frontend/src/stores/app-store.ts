@@ -12,6 +12,9 @@ interface AppState {
   matrixSortBy: 'name' | 'days' | 'salary'
   matrixSortDir: 'asc' | 'desc'
   matrixCellColor: boolean
+  paintMode: boolean
+  paintCoef: number
+  paintWsId: number | null
   setTab: (tab: Tab) => void
   setYearMonth: (ym: string) => void
   toggleDarkMode: () => void
@@ -20,6 +23,8 @@ interface AppState {
   setMatrixSearch: (q: string) => void
   setMatrixSort: (by: 'name' | 'days' | 'salary', dir: 'asc' | 'desc') => void
   toggleMatrixCellColor: () => void
+  setPaintMode: (on: boolean) => void
+  setPaintPreset: (coef: number, wsId: number | null) => void
 }
 
 // Compute yearMonth in KST so month boundaries match the backend (time.go)
@@ -43,6 +48,9 @@ export const useAppStore = create<AppState>((set) => ({
   matrixSortBy: 'name',
   matrixSortDir: 'asc',
   matrixCellColor: localStorage.getItem('matrix-cell-color') === 'true',
+  paintMode: false,
+  paintCoef: 1,
+  paintWsId: null,
   setTab: (tab) => set({ tab }),
   setYearMonth: (yearMonth) => set({ yearMonth }),
   toggleDarkMode: () =>
@@ -61,4 +69,6 @@ export const useAppStore = create<AppState>((set) => ({
       localStorage.setItem('matrix-cell-color', String(next))
       return { matrixCellColor: next }
     }),
+  setPaintMode: (paintMode) => set({ paintMode }),
+  setPaintPreset: (paintCoef, paintWsId) => set({ paintCoef, paintWsId }),
 }))
