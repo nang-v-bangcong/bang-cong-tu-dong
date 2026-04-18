@@ -16,17 +16,18 @@ const SECTIONS: Section[] = [
     title: 'Điều hướng',
     items: [
       { keys: ['←', '→', '↑', '↓'], desc: 'Di chuyển ô đang chọn' },
-      { keys: ['Tab'], desc: 'Sang ô kế bên phải' },
-      { keys: ['Enter'], desc: 'Mở ô để nhập số' },
+      { keys: ['Tab'], desc: 'Sang ô kế phải (Shift+Tab: sang trái)' },
+      { keys: ['Enter'], desc: 'Mở ô để nhập (Shift+Enter: lên trên)' },
       { keys: ['T'], desc: 'Cuộn đến hôm nay' },
     ],
   },
   {
     title: 'Nhập liệu',
     items: [
-      { keys: ['0', '-', '9'], desc: 'Gõ số để mở editor và nhập hệ số' },
-      { keys: ['Delete'], desc: 'Xóa ô đã chọn' },
-      { keys: ['Escape'], desc: 'Bỏ chọn / đóng' },
+      { keys: ['0', '–', '9'], desc: '1 ô: mở editor. Nhiều ô: 1-3 áp hệ số, 0 xóa' },
+      { keys: ['. , Backspace'], desc: 'Các phím chỉnh sửa số trong editor' },
+      { keys: ['Del', 'Backspace'], desc: 'Xóa ô/vùng đã chọn' },
+      { keys: ['Escape'], desc: 'Bỏ chọn / đóng editor' },
     ],
   },
   {
@@ -35,6 +36,7 @@ const SECTIONS: Section[] = [
       { keys: ['Shift', '+ Click'], desc: 'Chọn vùng liền kề' },
       { keys: ['Ctrl', '+ Click'], desc: 'Thêm/bớt từng ô' },
       { keys: ['Kéo góc phải-dưới'], desc: 'Điền dải (fill handle)' },
+      { keys: ['Double-click'], desc: 'Mở chọn công trường cho ô' },
     ],
   },
   {
@@ -42,16 +44,18 @@ const SECTIONS: Section[] = [
     items: [
       { keys: ['B'], desc: 'Bật/tắt chế độ Cọ' },
       { keys: ['Ctrl', '+ Z'], desc: 'Hoàn tác' },
-      { keys: ['Ctrl', '+ Y'], desc: 'Làm lại' },
+      { keys: ['Ctrl', '+ Y'], desc: 'Làm lại (hoặc Ctrl+Shift+Z)' },
       { keys: ['Ctrl', '+ C'], desc: 'Copy vùng chọn (TSV, dán Excel)' },
       { keys: ['Ctrl', '+ V'], desc: 'Dán lưới từ Excel' },
+      { keys: ['?'], desc: 'Mở/đóng bảng phím tắt này' },
+      { keys: ['F1'], desc: 'Mở ghi chú hướng dẫn (có thể in)' },
     ],
   },
   {
     title: 'Menu chuột phải',
     items: [
-      { keys: ['Cột ngày'], desc: 'Điền cả ngày, xóa ngày, copy ngày' },
-      { keys: ['Tên người'], desc: 'Sửa, xuất PDF, xóa' },
+      { keys: ['Cột ngày'], desc: 'Chấm cả đội, gán CT, copy/lặp ngày, xóa ngày' },
+      { keys: ['Tên người'], desc: 'Sửa tên & lương, xuất PDF riêng, xóa' },
     ],
   },
 ]
