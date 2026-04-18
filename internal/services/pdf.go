@@ -2,12 +2,22 @@ package services
 
 import (
 	"bang-cong/internal/models"
+	_ "embed"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/jung-kurt/gofpdf"
 )
+
+// Noto Sans ships with the app so PDF export works on any Windows install,
+// including minimal/VM images without Arial. Covers Vietnamese diacritics.
+// License: SIL Open Font License 1.1 — see fonts/OFL.txt.
+//
+//go:embed fonts/NotoSans-Regular.ttf
+var notoSansRegular []byte
+
+//go:embed fonts/NotoSans-Bold.ttf
+var notoSansBold []byte
 
 type PDFData struct {
 	Title         string
@@ -22,18 +32,14 @@ type PDFData struct {
 	UserDailyWage int64
 }
 
-// pdfFontFamily returns the family name to use after registering the UTF-8
-// capable font; falls back to Arial Latin-1 when the system font isn't
-// readable (keeps the feature alive on environments without the TTF).
+// pdfFontFamily registers the embedded Noto Sans face with gofpdf and returns
+// its family name. The bytes are compiled into the binary, so PDF export works
+// identically across every Windows install — no system font dependency, and
+// Vietnamese diacritics always render correctly.
 func pdfFontFamily(pdf *gofpdf.Fpdf) string {
-	const family = "arial-utf8"
-	reg, regErr := os.ReadFile(`C:\Windows\Fonts\arial.ttf`)
-	bold, boldErr := os.ReadFile(`C:\Windows\Fonts\arialbd.ttf`)
-	if regErr != nil || boldErr != nil {
-		return "Arial"
-	}
-	pdf.AddUTF8FontFromBytes(family, "", reg)
-	pdf.AddUTF8FontFromBytes(family, "B", bold)
+	const family = "noto-sans"
+	pdf.AddUTF8FontFromBytes(family, "", notoSansRegular)
+	pdf.AddUTF8FontFromBytes(family, "B", notoSansBold)
 	return family
 }
 
