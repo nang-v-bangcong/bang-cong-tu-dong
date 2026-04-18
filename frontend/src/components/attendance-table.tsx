@@ -81,17 +81,22 @@ export function AttendanceTable({ yearMonth, records, worksites, today, onSave, 
           </tr>
         </thead>
         <tbody>
-          {days.map((date) => (
-            <AttendanceRow
-              key={date}
-              date={date}
-              data={recordMap.get(date) ?? null}
-              worksites={worksites}
-              isToday={date === today}
-              onSave={onSave}
-              onDelete={onDelete}
-            />
-          ))}
+          {days.map((date) => {
+            const record = recordMap.get(date) ?? null
+            // Include record id in key so row remounts after delete/re-create,
+            // clearing stale local state (coeff/wsId/note) from the previous record.
+            return (
+              <AttendanceRow
+                key={`${date}-${record?.id ?? 'empty'}`}
+                date={date}
+                data={record}
+                worksites={worksites}
+                isToday={date === today}
+                onSave={onSave}
+                onDelete={onDelete}
+              />
+            )
+          })}
         </tbody>
       </table>
     </div>
