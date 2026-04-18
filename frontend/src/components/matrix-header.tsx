@@ -24,7 +24,7 @@ export function MatrixHeader({
             key={d}
             onContextMenu={(e) => { e.preventDefault(); onDayContextMenu(d, e.clientX, e.clientY) }}
             style={{
-              minWidth: 38, width: 38, padding: '4px 2px',
+              minWidth: 42, width: 42, padding: '4px 2px',
               borderRight: '1px solid var(--border-light)',
               color: isSundayOf(yearMonth, d) ? 'var(--danger)' : undefined,
               cursor: 'context-menu',
@@ -40,7 +40,7 @@ export function MatrixHeader({
       <tr style={{ position: 'sticky', top: 36, zIndex: 3, background: 'var(--bg-muted)' }}>
         <th style={{ ...stickyLeft, background: 'var(--bg-muted)', padding: '4px 8px', textAlign: 'left', fontSize: 10, top: 36 }}>Ghi chú</th>
         {days.map((d) => (
-          <th key={d} style={{ position: 'relative', minWidth: 38, width: 38, height: 26, padding: 0, borderRight: '1px solid var(--border-light)' }}>
+          <th key={d} style={{ position: 'relative', minWidth: 42, width: 42, height: 26, padding: 0, borderRight: '1px solid var(--border-light)' }}>
             <DayNoteCell day={d} note={dayNotes[d] ?? ''} onSave={onDayNoteSave} />
           </th>
         ))}

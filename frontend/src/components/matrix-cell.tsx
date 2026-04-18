@@ -43,7 +43,6 @@ function MatrixCellInner(props: Props) {
   const coef = cell?.coefficient ?? 0
   const wsId = cell?.worksiteId ?? null
   const wsName = cell?.worksiteName ?? ''
-  const wsDotColor = wsId ? hashColor(wsName) : null
 
   // Auto-open editor when focused and parent dispatches a signal (e.g., user typed a number)
   useEffect(() => {
@@ -117,9 +116,9 @@ function MatrixCellInner(props: Props) {
       onDoubleClick={openPicker}
       className="relative text-center text-xs select-none cursor-cell"
       style={{
-        minWidth: 38,
-        width: 38,
-        height: 28,
+        minWidth: 42,
+        width: 42,
+        height: 32,
         padding: 0,
         background: bg,
         border,
@@ -141,16 +140,18 @@ function MatrixCellInner(props: Props) {
           style={{ background: 'transparent', border: 'none', padding: 0 }}
         />
       ) : (
-        <>
-          <span className="font-medium">{formatCoef(coef)}</span>
-          {wsDotColor && (
+        <div className="flex flex-col items-center justify-center h-full w-full px-0.5">
+          <span className="leading-none font-bold" style={{ fontSize: 11 }}>{formatCoef(coef)}</span>
+          {wsId && (
             <span
               title={wsName}
-              className="absolute bottom-0.5 right-0.5"
-              style={{ width: 6, height: 6, borderRadius: '50%', background: wsDotColor }}
-            />
+              className="leading-none truncate"
+              style={{ fontSize: 8, maxWidth: '100%', color: 'var(--text-muted)' }}
+            >
+              {wsName}
+            </span>
           )}
-        </>
+        </div>
       )}
       {isFocused && !editing && (
         <span

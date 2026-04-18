@@ -41,7 +41,7 @@ export function MatrixBodyRow(p: Props) {
           isSunday={isSundayOf(yearMonth, d)}
           isToday={todayDay === d}
           colorOn={colorOn}
-          startEditingSignal={focus?.userId === row.userId && focus?.day === d ? editSignal : 0}
+          startEditingSignal={editSignal}
           initialEditChar={focus?.userId === row.userId && focus?.day === d ? editChar : undefined}
           onSave={p.onCellSave}
           onSelect={p.onSelect}
