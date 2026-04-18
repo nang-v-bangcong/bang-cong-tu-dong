@@ -130,6 +130,142 @@ func TestFillDayForAllUsers_CoefOutOfRange(t *testing.T) {
 	}
 }
 
+func TestFillSundaysForAllUsers_AllMissing(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+
+	ws := seedWorksite(t, "W", 100000)
+	seedTeamUser(t, "A")
+	seedTeamUser(t, "B")
+	seedTeamUser(t, "C")
+
+	// March 2026 has 5 Sundays: 1, 8, 15, 22, 29.
+	n, err := FillSundaysForAllUsers("2026-03", 1.0, &ws, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != 15 {
+		t.Errorf("affected=%d want 15 (3 users x 5 sundays)", n)
+	}
+
+	m, _ := GetTeamMonthMatrix("2026-03")
+	sundays := []int{1, 8, 15, 22, 29}
+	for _, r := range m.Rows {
+		for _, d := range sundays {
+			if r.Cells[d].Coefficient != 1.0 {
+				t.Errorf("%s day%d=%v want 1.0", r.UserName, d, r.Cells[d].Coefficient)
+			}
+		}
+	}
+}
+
+func TestFillSundaysForAllUsers_SkipExistingWhenNotOverwrite(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+
+	ws := seedWorksite(t, "W", 100000)
+	a := seedTeamUser(t, "A")
+	seedTeamUser(t, "B")
+	seedTeamUser(t, "C")
+
+	// a already has coefficient on 2026-03-08 (a Sunday).
+	if _, err := UpsertAttendance(a, "2026-03-08", 2.0, &ws, "existing"); err != nil {
+		t.Fatal(err)
+	}
+
+	n, err := FillSundaysForAllUsers("2026-03", 1.0, &ws, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != 14 {
+		t.Errorf("affected=%d want 14 (15 - 1 pre-filled)", n)
+	}
+
+	m, _ := GetTeamMonthMatrix("2026-03")
+	for _, r := range m.Rows {
+		if r.UserID == a {
+			if r.Cells[8].Coefficient != 2.0 {
+				t.Errorf("a's existing day8 should stay 2.0, got %v", r.Cells[8].Coefficient)
+			}
+			if r.Cells[8].Note != "existing" {
+				t.Errorf("a's note should stay, got %q", r.Cells[8].Note)
+			}
+		}
+	}
+}
+
+func TestFillSundaysForAllUsers_OverwriteReplacesExisting(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+
+	ws := seedWorksite(t, "W", 100000)
+	a := seedTeamUser(t, "A")
+	seedTeamUser(t, "B")
+	seedTeamUser(t, "C")
+
+	if _, err := UpsertAttendance(a, "2026-03-15", 2.0, &ws, "note"); err != nil {
+		t.Fatal(err)
+	}
+
+	n, err := FillSundaysForAllUsers("2026-03", 1.0, &ws, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != 15 {
+		t.Errorf("affected=%d want 15 (overwrite all)", n)
+	}
+
+	m, _ := GetTeamMonthMatrix("2026-03")
+	for _, r := range m.Rows {
+		if r.Cells[15].Coefficient != 1.0 {
+			t.Errorf("%s day15=%v want 1.0", r.UserName, r.Cells[15].Coefficient)
+		}
+	}
+}
+
+func TestFillSundaysForAllUsers_ExcludesSelfUser(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+
+	ws := seedWorksite(t, "W", 100000)
+	seedTeamUser(t, "A")
+	self, _ := EnsureSelfUser("Me", 0)
+
+	// March 2026 has 5 Sundays; only A (team) should be filled.
+	n, err := FillSundaysForAllUsers("2026-03", 1.0, &ws, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != 5 {
+		t.Errorf("affected=%d want 5 (1 team user x 5 sundays)", n)
+	}
+	items, _ := GetMonthAttendance(self.ID, "2026-03")
+	if len(items) != 0 {
+		t.Errorf("self should not get rows, got %+v", items)
+	}
+}
+
+func TestFillSundaysForAllUsers_CoefOutOfRange(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+
+	if _, err := FillSundaysForAllUsers("2026-03", 3.5, nil, false); err == nil {
+		t.Error("coef 3.5 should error")
+	}
+	if _, err := FillSundaysForAllUsers("2026-03", 0, nil, false); err == nil {
+		t.Error("coef 0 should error")
+	}
+}
+
+func TestFillSundaysForAllUsers_InvalidYearMonth(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+
+	if _, err := FillSundaysForAllUsers("bad-format", 1.0, nil, false); err == nil {
+		t.Error("invalid yearMonth should error")
+	}
+}
+
 func TestCopyDayForAll_CopiesDayNote(t *testing.T) {
 	cleanup := setupTestDB(t)
 	defer cleanup()

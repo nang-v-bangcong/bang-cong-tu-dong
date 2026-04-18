@@ -78,6 +78,10 @@ export function FillDayForAllUsers(arg1, arg2, arg3, arg4, arg5) {
   return window['go']['main']['App']['FillDayForAllUsers'](arg1, arg2, arg3, arg4, arg5);
 }
 
+export function FillSundaysForAllUsers(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['FillSundaysForAllUsers'](arg1, arg2, arg3, arg4);
+}
+
 export function GetAuditLog(arg1, arg2) {
   return window['go']['main']['App']['GetAuditLog'](arg1, arg2);
 }

@@ -164,6 +164,10 @@ func (a *App) FillDayForAllUsers(yearMonth string, day int, coef float64, worksi
 	return services.FillDayForAllUsers(yearMonth, day, coef, worksiteID, overwrite)
 }
 
+func (a *App) FillSundaysForAllUsers(yearMonth string, coef float64, worksiteID *int64, overwrite bool) (int, error) {
+	return services.FillSundaysForAllUsers(yearMonth, coef, worksiteID, overwrite)
+}
+
 func (a *App) CopyDayForAll(yearMonth string, srcDay, dstDay int, overwrite bool) (int, error) {
 	return services.CopyDayForAll(yearMonth, srcDay, dstDay, overwrite)
 }

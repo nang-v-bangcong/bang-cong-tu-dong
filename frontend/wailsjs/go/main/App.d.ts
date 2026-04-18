@@ -41,6 +41,8 @@ export function ExportPDF(arg1:number,arg2:string,arg3:string):Promise<string>;
 
 export function FillDayForAllUsers(arg1:string,arg2:number,arg3:number,arg4:any,arg5:boolean):Promise<number>;
 
+export function FillSundaysForAllUsers(arg1:string,arg2:number,arg3:any,arg4:boolean):Promise<number>;
+
 export function GetAuditLog(arg1:number,arg2:number):Promise<Array<models.AuditLog>>;
 
 export function GetDayNotes(arg1:string):Promise<Array<models.DayNote>>;
