@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { toast } from 'sonner'
-import { useHistoryStore, type HistoryEntry } from '../stores/matrix-history-store'
+import { useHistoryStore, type HistoryEntry } from '../stores/history-store'
 
 interface Opts {
   runUndo: (entry: HistoryEntry) => Promise<void>
@@ -19,13 +19,13 @@ export function useMatrixKeyboard({ runUndo, runRedo, onGoToday, onTogglePaint }
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return
       if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
         e.preventDefault()
-        const entry = popUndo()
+        const entry = popUndo('matrix')
         if (!entry) { toast.info('Không còn thao tác để hoàn tác'); return }
         try { await runUndo(entry); toast.success('Đã hoàn tác') }
         catch { toast.error('Lỗi hoàn tác') }
       } else if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
         e.preventDefault()
-        const entry = popRedo()
+        const entry = popRedo('matrix')
         if (!entry) { toast.info('Không còn thao tác để làm lại'); return }
         try { await runRedo(entry); toast.success('Đã làm lại') }
         catch { toast.error('Lỗi làm lại') }

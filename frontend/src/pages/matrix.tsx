@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { useAppStore } from '../stores/app-store'
-import { useHistoryStore } from '../stores/matrix-history-store'
+import { useHistoryStore } from '../stores/history-store'
 import { type User, type Worksite, mapUsers, mapWorksites } from '../lib/utils'
 import { computeWsBreakdown } from '../lib/matrix-utils'
 import { MatrixTable } from '../components/matrix-table'
@@ -28,6 +28,7 @@ export function MatrixPage() {
     paintMode, paintCoef, paintWsId, setPaintMode, setPaintPreset,
     setMatrixSearch, setMatrixSort, toggleMatrixCellColor } = useAppStore()
   const clearHistory = useHistoryStore((s) => s.clear)
+  const matrixCounts = useHistoryStore((s) => s.stacks.matrix)
 
   const [matrix, setMatrix] = useState<models.TeamMatrix | null>(null)
   const [worksites, setWorksites] = useState<Worksite[]>([])
@@ -51,7 +52,7 @@ export function MatrixPage() {
   }, [yearMonth])
 
   useEffect(() => { load() }, [load, refreshTrigger])
-  useEffect(() => { clearHistory() }, [yearMonth, clearHistory])
+  useEffect(() => { clearHistory('matrix') }, [yearMonth, clearHistory])
 
   const m = useMatrixMutations({ yearMonth, matrix, reload: load })
 
@@ -115,6 +116,21 @@ export function MatrixPage() {
   const togglePaint = useCallback(() => { setPaintMode(!paintMode) }, [paintMode, setPaintMode])
   useMatrixKeyboard({ runUndo: m.runUndo, runRedo: m.runRedo, onGoToday, onTogglePaint: togglePaint })
 
+  const popUndo = useHistoryStore((s) => s.popUndo)
+  const popRedo = useHistoryStore((s) => s.popRedo)
+  const onUndoClick = useCallback(async () => {
+    const entry = popUndo('matrix')
+    if (!entry) { toast.info('Không còn thao tác để hoàn tác'); return }
+    try { await m.runUndo(entry); toast.success('Đã hoàn tác') }
+    catch { toast.error('Lỗi hoàn tác') }
+  }, [popUndo, m])
+  const onRedoClick = useCallback(async () => {
+    const entry = popRedo('matrix')
+    if (!entry) { toast.info('Không còn thao tác để làm lại'); return }
+    try { await m.runRedo(entry); toast.success('Đã làm lại') }
+    catch { toast.error('Lỗi làm lại') }
+  }, [popRedo, m])
+
   const breakdown = useMemo(() => matrix
     ? computeWsBreakdown(matrix.rows,
         new Map(users.map((u) => [u.id, { dailyWage: u.dailyWage }])),
@@ -143,6 +159,10 @@ export function MatrixPage() {
         paintMode={paintMode} paintCoef={paintCoef} paintWsId={paintWsId}
         onSetPaintMode={setPaintMode} onSetPaintPreset={setPaintPreset}
         onFillSundaysClick={() => setShowFillSundays(true)}
+        undoCount={matrixCounts.past.length}
+        redoCount={matrixCounts.future.length}
+        onUndo={onUndoClick}
+        onRedo={onRedoClick}
       />
       <ZoomableArea storageKey="zoom-matrix" className="flex-1 min-h-0">
         <MatrixTable

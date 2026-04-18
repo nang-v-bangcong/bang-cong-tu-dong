@@ -17,10 +17,10 @@ import { ZoomableArea } from '../components/zoomable-area'
 import { TeamUserBar } from '../components/team-user-bar'
 import { TeamToolbar } from '../components/team-toolbar'
 import { useTodayScroll } from '../lib/use-today-scroll'
+import { useTeamAttendance } from '../lib/use-team-attendance'
 import {
   GetTeamUsers, CreateTeamUser, DeleteTeamUser, UpdateUser, BulkCreateUsers,
-  GetMonthAttendance, UpsertAttendance, DeleteAttendance,
-  GetMonthSummary, CopyPreviousDay, GetTeamMonthSummaries,
+  GetMonthAttendance, GetMonthSummary, GetTeamMonthSummaries,
   GetWorksites, GetToday, ExportPDF, GetWorksiteSummary,
 } from '../../wailsjs/go/main/App'
 
@@ -51,19 +51,22 @@ export function TeamPage() {
     return mapped
   }, [])
 
-  const loadPersonData = useCallback(async (u: User) => {
+  const loadPersonData = useCallback(async (u: User): Promise<Attendance[] | null> => {
     try {
       setLoading(true)
       const [att, sum, ws, td, wsb] = await Promise.all([
         GetMonthAttendance(u.id, yearMonth), GetMonthSummary(u.id, yearMonth),
         GetWorksites(), GetToday(), GetWorksiteSummary(u.id, yearMonth),
       ])
-      setRecords(mapAttendance(att))
+      const mapped = mapAttendance(att)
+      setRecords(mapped)
       setSummary(sum as Summary)
       setWorksites(mapWorksites(ws))
       setWsBreakdown((wsb || []) as WsSummary[])
       setToday(td)
-    } catch { toast.error('Lỗi tải dữ liệu') } finally { setLoading(false) }
+      return mapped
+    } catch { toast.error('Lỗi tải dữ liệu'); return null }
+    finally { setLoading(false) }
   }, [yearMonth])
 
   const loadTeamSummary = useCallback(async () => {
@@ -83,6 +86,7 @@ export function TeamPage() {
   useEffect(() => { if (selected) loadPersonData(selected) }, [selected, yearMonth, refreshTrigger, loadPersonData])
 
   const reload = async () => { const us = await loadUsers(); loadTeamSummary(); return us }
+  const reloadPerson = useCallback(async () => selected ? loadPersonData(selected) : null, [selected, loadPersonData])
 
   const handleAddPerson = async (name: string, dailyWage: number) => {
     try {
@@ -97,16 +101,10 @@ export function TeamPage() {
       const res = await BulkCreateUsers(names)
       const created = res.created?.length ?? 0
       const skippedList = res.skipped ?? []
-      const skipped = skippedList.length
       await reload()
-      if (created > 0) {
-        toast.success(`Đã thêm ${created} người`)
-      }
-      if (skipped > 0) {
-        toast.warning(`${skipped} tên bị trùng, đã bỏ qua: ${skippedList.join(', ')}. Hãy thêm họ hoặc số để phân biệt.`, { duration: 8000 })
-      } else if (created === 0) {
-        toast.info('Tất cả tên đã tồn tại')
-      }
+      if (created > 0) toast.success(`Đã thêm ${created} người`)
+      if (skippedList.length > 0) toast.warning(`${skippedList.length} tên bị trùng, đã bỏ qua: ${skippedList.join(', ')}. Hãy thêm họ hoặc số để phân biệt.`, { duration: 8000 })
+      else if (created === 0) toast.info('Tất cả tên đã tồn tại')
     } catch { toast.error('Lỗi thêm nhiều người') }
   }
 
@@ -130,29 +128,10 @@ export function TeamPage() {
     } catch { toast.error('Lỗi cập nhật') }
   }
 
-  const handleSave = async (date: string, coeff: number, wsId: number | null, note: string) => {
-    if (!selected) return
-    try { await UpsertAttendance(selected.id, date, coeff, wsId, note); loadPersonData(selected); loadTeamSummary() }
-    catch { toast.error('Lỗi lưu') }
-  }
-
-  const handleDelete = async (id: number) => {
-    if (!selected) return
-    try { await DeleteAttendance(id); loadPersonData(selected); loadTeamSummary() }
-    catch { toast.error('Lỗi xóa') }
-  }
-
-  const handleQuickAdd = async () => {
-    if (!selected || !today) return
-    try { await UpsertAttendance(selected.id, today, 1, null, ''); loadPersonData(selected); loadTeamSummary(); toast.success('Đã chấm công!') }
-    catch { toast.error('Lỗi chấm công') }
-  }
-
-  const handleCopy = async () => {
-    if (!selected || !today) return
-    try { await CopyPreviousDay(selected.id, today); loadPersonData(selected); loadTeamSummary(); toast.success('Đã copy') }
-    catch { toast.error('Không tìm thấy ngày trước') }
-  }
+  const {
+    handleSave, handleDelete, handleQuickAdd, handleCopy,
+    onUndo, onRedo, undoCount, redoCount,
+  } = useTeamAttendance({ yearMonth, selected, today, records, reloadPerson, reloadSummary: loadTeamSummary })
 
   const handleExport = async () => {
     if (!selected) return
@@ -163,7 +142,7 @@ export function TeamPage() {
   const { hasToday, onGoToday } = useTodayScroll({
     today, yearMonth, bindKey: true,
     getTarget: (t) => document.querySelector(`tr[data-date="${t}"]`),
-    scrollOpts: { block: 'center' },
+    scrollOpts: { block: 'center', behavior: 'smooth' },
   })
 
   return (
@@ -179,7 +158,7 @@ export function TeamPage() {
               onAdd={() => setShowAdd(true)}
               onBatch={() => setShowBatch(true)}
             />
-            {selected && <TeamToolbar hasToday={hasToday} onToday={onGoToday} />}
+            {selected && <TeamToolbar hasToday={hasToday} onToday={onGoToday} undoCount={undoCount} redoCount={redoCount} onUndo={onUndo} onRedo={onRedo} />}
             {!selected
               ? <p className="text-center py-8 text-sm" style={{ color: 'var(--text-muted)' }}>Chưa có người nào. Bấm "Thêm" để bắt đầu.</p>
               : loading

@@ -3,6 +3,7 @@ import { UserPlus, Search, X, Paintbrush, Download, Calendar, CalendarDays } fro
 import { type Worksite } from '../lib/utils'
 import { formatCoef } from '../lib/matrix-utils'
 import { PaintPopover } from './paint-popover'
+import { UndoRedoButtons } from './undo-redo-buttons'
 
 interface Props {
   search: string
@@ -24,6 +25,10 @@ interface Props {
   onSetPaintMode: (on: boolean) => void
   onSetPaintPreset: (coef: number, wsId: number | null) => void
   onFillSundaysClick: () => void
+  undoCount: number
+  redoCount: number
+  onUndo: () => void
+  onRedo: () => void
 }
 
 const SORT_OPTIONS: Array<{ key: 'name' | 'days' | 'salary'; label: string }> = [
@@ -40,6 +45,7 @@ export function MatrixToolbar({
   hasToday, onToday,
   worksites, paintMode, paintCoef, paintWsId, onSetPaintMode, onSetPaintPreset,
   onFillSundaysClick,
+  undoCount, redoCount, onUndo, onRedo,
 }: Props) {
   const [showPop, setShowPop] = useState(false)
   const paintBtnRef = useRef<HTMLButtonElement>(null)
@@ -57,6 +63,7 @@ export function MatrixToolbar({
 
   return (
     <div className="flex items-center gap-2 mb-2 flex-wrap">
+      <UndoRedoButtons undoCount={undoCount} redoCount={redoCount} onUndo={onUndo} onRedo={onRedo} />
       <button
         onClick={onAddClick}
         className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white"

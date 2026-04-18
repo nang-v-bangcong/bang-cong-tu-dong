@@ -1,4 +1,4 @@
-import { type CellSnap } from '../stores/matrix-history-store'
+import { type CellSnap } from '../stores/history-store'
 import { type models, type services } from '../../wailsjs/go/models'
 import { dateOf } from './matrix-utils'
 import { BulkUpsertCells, BulkDeleteAttendance } from '../../wailsjs/go/main/App'

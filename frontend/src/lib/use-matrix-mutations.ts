@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react'
 import { toast } from 'sonner'
 import { dateOf, listSundays } from './matrix-utils'
 import { applySnapshot } from './matrix-history'
-import { type CellSnap } from '../stores/matrix-history-store'
+import { type CellSnap } from '../stores/history-store'
 import { type models, type services } from '../../wailsjs/go/models'
 import {
   UpsertAttendance, UpsertDayNote,

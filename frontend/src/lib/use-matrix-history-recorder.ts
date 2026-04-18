@@ -1,6 +1,6 @@
 import { useCallback, type MutableRefObject } from 'react'
 import { snapshotCells } from './matrix-history'
-import { useHistoryStore, type CellSnap } from '../stores/matrix-history-store'
+import { useHistoryStore, type CellSnap } from '../stores/history-store'
 import { type models } from '../../wailsjs/go/models'
 
 export type BulkCells = Array<{ userId: number; day: number }>
@@ -21,7 +21,7 @@ export function useMatrixHistoryRecorder({ yearMonth, matrixRef, reload }: Opts)
     await mutate()
     const fresh = await reload()
     const snapAfter = fresh ? snapshotCells(fresh, keys) : snapBefore.map((s) => ({ ...s, state: null }))
-    push({ ym, before: snapBefore, after: snapAfter, ts: Date.now() })
+    push('matrix', { ym, before: snapBefore, after: snapAfter, ts: Date.now() })
   }, [ym, reload, push, matrixRef])
 
   // Same as record(), but separates the "before" and "after" key sets so undo/redo
@@ -40,7 +40,7 @@ export function useMatrixHistoryRecorder({ yearMonth, matrixRef, reload }: Opts)
     const latestAfter = fresh ? snapshotCells(fresh, beforeKeys) : snapBefore.map((s) => ({ ...s, state: null }))
     for (const s of snapBefore) union.set(`${s.userId}:${s.day}`, s)
     for (const s of latestAfter) union.set(`${s.userId}:${s.day}`, { ...s })
-    push({ ym, before: snapBefore, after: Array.from(union.values()).map((s) => {
+    push('matrix', { ym, before: snapBefore, after: Array.from(union.values()).map((s) => {
       const a = snapAfter.find((x) => x.userId === s.userId && x.day === s.day)
       return a ?? s
     }), ts: Date.now() })
