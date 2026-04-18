@@ -94,10 +94,17 @@ export function TeamPage() {
     try {
       const res = await BulkCreateUsers(names)
       const created = res.created?.length ?? 0
-      const skipped = res.skipped?.length ?? 0
+      const skippedList = res.skipped ?? []
+      const skipped = skippedList.length
       await reload()
-      if (created > 0) toast.success(`Đã thêm ${created} người${skipped > 0 ? ` (bỏ qua ${skipped} trùng)` : ''}`)
-      else toast.info('Tất cả tên đã tồn tại')
+      if (created > 0) {
+        toast.success(`Đã thêm ${created} người`)
+      }
+      if (skipped > 0) {
+        toast.warning(`${skipped} tên bị trùng, đã bỏ qua: ${skippedList.join(', ')}. Hãy thêm họ hoặc số để phân biệt.`, { duration: 8000 })
+      } else if (created === 0) {
+        toast.info('Tất cả tên đã tồn tại')
+      }
     } catch { toast.error('Lỗi thêm nhiều người') }
   }
 

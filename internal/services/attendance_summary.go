@@ -104,7 +104,7 @@ func GetTeamMonthSummaries(yearMonth string) ([]models.UserMonthSummary, error) 
 		LEFT JOIN worksites w ON a.worksite_id = w.id
 		WHERE u.is_self = 0
 		GROUP BY u.id, u.name
-		ORDER BY u.id
+		ORDER BY u.name COLLATE NOCASE
 	`, prefix)
 	if err != nil {
 		return nil, err

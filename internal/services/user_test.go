@@ -73,7 +73,8 @@ func TestBulkCreateUsers_DedupeWithinRequest(t *testing.T) {
 	cleanup := setupTestDB(t)
 	defer cleanup()
 
-	// "A" appears twice in the input — should count as 1 create, 0 skip.
+	// "A" appears twice in the input: one create + one skip so the caller can
+	// surface the duplicate line to the user.
 	res, err := BulkCreateUsers([]string{"A", "A", "B"})
 	if err != nil {
 		t.Fatalf("err: %v", err)
@@ -81,8 +82,60 @@ func TestBulkCreateUsers_DedupeWithinRequest(t *testing.T) {
 	if len(res.Created) != 2 {
 		t.Errorf("created=%d want 2 (%+v)", len(res.Created), res.Created)
 	}
-	if len(res.Skipped) != 0 {
-		t.Errorf("skipped=%d want 0 (%+v)", len(res.Skipped), res.Skipped)
+	if len(res.Skipped) != 1 || res.Skipped[0] != "A" {
+		t.Errorf("skipped=%+v want [A]", res.Skipped)
+	}
+}
+
+func TestBulkCreateUsers_DedupeCaseInsensitive(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+
+	// "Nam" and "nam" must collapse to one person so attendance/salary can't
+	// drift across two rows for the same worker.
+	res, err := BulkCreateUsers([]string{"Nam", "nam", "NAM", "Hoa"})
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if len(res.Created) != 2 {
+		t.Errorf("created=%d want 2 (%+v)", len(res.Created), res.Created)
+	}
+	if len(res.Skipped) != 2 {
+		t.Errorf("skipped=%+v want 2 entries (the casing duplicates)", res.Skipped)
+	}
+}
+
+func TestBulkCreateUsers_SkipExistingCaseInsensitive(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+
+	if _, err := CreateTeamUser("Nam", 0); err != nil {
+		t.Fatal(err)
+	}
+	res, err := BulkCreateUsers([]string{"NAM", "nam", "Hoa"})
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if len(res.Created) != 1 || res.Created[0].Name != "Hoa" {
+		t.Errorf("created=%+v want only Hoa", res.Created)
+	}
+	if len(res.Skipped) != 2 {
+		t.Errorf("skipped=%+v want 2 entries", res.Skipped)
+	}
+}
+
+func TestCreateTeamUser_RejectsDuplicateCaseInsensitive(t *testing.T) {
+	cleanup := setupTestDB(t)
+	defer cleanup()
+
+	if _, err := CreateTeamUser("Nam", 0); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := CreateTeamUser("nam", 0); err == nil {
+		t.Error("expected rejection: 'Nam' and 'nam' must be treated as the same person")
+	}
+	if _, err := CreateTeamUser("NAM", 0); err == nil {
+		t.Error("expected rejection for upper-case duplicate")
 	}
 }
 

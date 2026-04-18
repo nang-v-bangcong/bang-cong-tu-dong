@@ -88,9 +88,14 @@ export function MatrixPage() {
     try {
       const res = await BulkCreateUsers(names)
       const c = res.created?.length ?? 0
-      const s = res.skipped?.length ?? 0
-      if (c > 0) toast.success(`Đã thêm ${c} người${s > 0 ? ` (bỏ qua ${s} trùng)` : ''}`)
-      else toast.info('Tất cả tên đã tồn tại')
+      const skippedList = res.skipped ?? []
+      const s = skippedList.length
+      if (c > 0) toast.success(`Đã thêm ${c} người`)
+      if (s > 0) {
+        toast.warning(`${s} tên bị trùng, đã bỏ qua: ${skippedList.join(', ')}. Hãy thêm họ hoặc số để phân biệt.`, { duration: 8000 })
+      } else if (c === 0) {
+        toast.info('Tất cả tên đã tồn tại')
+      }
       triggerRefresh()
     } catch { toast.error('Lỗi thêm nhiều người') }
   }, [triggerRefresh])

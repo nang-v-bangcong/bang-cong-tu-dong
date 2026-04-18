@@ -31,7 +31,7 @@ func GetTeamMonthMatrix(yearMonth string) (models.TeamMatrix, error) {
 	result.DayNotes = map[int]string{}
 	result.DayTotals = map[int]float64{}
 
-	userRows, err := db.Query(`SELECT id, name FROM users WHERE is_self = 0 ORDER BY name`)
+	userRows, err := db.Query(`SELECT id, name FROM users WHERE is_self = 0 ORDER BY name COLLATE NOCASE`)
 	if err != nil {
 		return result, err
 	}

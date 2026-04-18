@@ -69,10 +69,14 @@ func UpdateUser(id int64, name string, dailyWage int64) error {
 }
 
 // checkNameUnique returns an error if another user already has this name.
+// Comparison is case-insensitive: "Nam" and "nam" are treated as the same person.
 // excludeID=0 skips no one (use for create); otherwise exclude that ID (use for update).
 func checkNameUnique(name string, excludeID int64) error {
 	var id int64
-	err := db.QueryRow(`SELECT id FROM users WHERE name = ? LIMIT 1`, name).Scan(&id)
+	var existing string
+	err := db.QueryRow(
+		`SELECT id, name FROM users WHERE name = ? COLLATE NOCASE LIMIT 1`, name,
+	).Scan(&id, &existing)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil
 	}
@@ -82,12 +86,14 @@ func checkNameUnique(name string, excludeID int64) error {
 	if id == excludeID {
 		return nil
 	}
-	return fmt.Errorf("tên đã tồn tại: %s", name)
+	// Show the existing spelling so the user can add a suffix (e.g. "Nam A")
+	// instead of guessing what they typed before.
+	return fmt.Errorf("tên đã tồn tại: %q — vui lòng thêm họ hoặc số để phân biệt", existing)
 }
 
 func GetTeamUsers() ([]models.User, error) {
 	rows, err := db.Query(
-		`SELECT id, name, daily_wage, is_self, created_at FROM users WHERE is_self = 0 ORDER BY name`,
+		`SELECT id, name, daily_wage, is_self, created_at FROM users WHERE is_self = 0 ORDER BY name COLLATE NOCASE`,
 	)
 	if err != nil {
 		return nil, err
@@ -134,15 +140,18 @@ func DeleteTeamUser(id int64) error {
 }
 
 // BulkCreateUsers inserts multiple team users in a single transaction.
-// Duplicate names (case-sensitive, already present in users) are skipped — the tx
-// keeps going and reports them in the Skipped slice. Blank/overlong names fail fast.
+// Duplicate names are detected case-insensitively (so "Nam" and "nam" collide)
+// and reported in the Skipped slice; the transaction still commits the rest.
+// Blank/overlong names fail fast.
 func BulkCreateUsers(names []string) (models.BulkCreateResult, error) {
 	var result models.BulkCreateResult
 	if len(names) == 0 {
 		return result, fmt.Errorf("danh sách tên trống")
 	}
 
-	// Dedupe within the request itself and validate early.
+	// Dedupe within the request itself (case-insensitively). Names that
+	// collide inside the same batch are reported as skipped so the user
+	// knows exactly which lines were duplicates.
 	seen := map[string]bool{}
 	clean := make([]string, 0, len(names))
 	for _, raw := range names {
@@ -153,10 +162,12 @@ func BulkCreateUsers(names []string) (models.BulkCreateResult, error) {
 		if len([]rune(n)) > 100 {
 			return result, fmt.Errorf("tên quá dài: %s", n)
 		}
-		if seen[n] {
+		key := strings.ToLower(n)
+		if seen[key] {
+			result.Skipped = append(result.Skipped, n)
 			continue
 		}
-		seen[n] = true
+		seen[key] = true
 		clean = append(clean, n)
 	}
 
@@ -166,13 +177,13 @@ func BulkCreateUsers(names []string) (models.BulkCreateResult, error) {
 	}
 	defer tx.Rollback()
 
-	// Detect existing names so we can report them as "skipped" without relying
-	// on RowsAffected (modernc sqlite returns 1 even for INSERT OR IGNORE no-ops
-	// on some builds — safer to check upfront).
+	// Detect existing names (case-insensitive) so we can report them as
+	// "skipped" without relying on RowsAffected (modernc sqlite returns 1 even
+	// for INSERT OR IGNORE no-ops on some builds — safer to check upfront).
 	existing := map[string]bool{}
 	for _, n := range clean {
 		var id int64
-		err := tx.QueryRow(`SELECT id FROM users WHERE name = ?`, n).Scan(&id)
+		err := tx.QueryRow(`SELECT id FROM users WHERE name = ? COLLATE NOCASE`, n).Scan(&id)
 		if err == nil {
 			existing[n] = true
 			result.Skipped = append(result.Skipped, n)
