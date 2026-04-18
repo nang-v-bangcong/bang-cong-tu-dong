@@ -107,6 +107,14 @@ func RestoreDB(srcPath string) error {
 	if renameErr != nil {
 		return renameErr
 	}
+	// Upgrade schema of restored DB to current version — backups taken from
+	// older builds may lack newer columns (e.g. worksites.daily_wage) and would
+	// otherwise crash every subsequent query.
+	if db != nil {
+		if err := runMigrations(db); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
