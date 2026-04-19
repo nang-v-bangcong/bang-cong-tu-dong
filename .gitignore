@@ -5,7 +5,12 @@ frontend/dist
 *.db
 *.db-journal
 .env
+*.env
 frontend/package.json.md5
 coverage.out
 .claude/scheduled_tasks.lock
 *.syso
+worker/.dev.vars
+go.work
+go.work.sum
+admin/build/
