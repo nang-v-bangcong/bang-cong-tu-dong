@@ -2,6 +2,7 @@ package services
 
 import (
 	"database/sql"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -10,6 +11,11 @@ import (
 
 var db *sql.DB
 
+// busy_timeout(5000) lets a concurrent RPC wait up to 5s for a write lock
+// instead of failing immediately with SQLITE_BUSY (e.g. bulk fill racing
+// against matrix reload).
+const sqliteConnPragmas = "?_pragma=journal_mode(wal)&_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)"
+
 func InitDB() (*sql.DB, error) {
 	dataDir, err := getDataDir()
 	if err != nil {
@@ -17,7 +23,7 @@ func InitDB() (*sql.DB, error) {
 	}
 	dbPath := filepath.Join(dataDir, "bang-cong.db")
 
-	db, err = sql.Open("sqlite", "file:"+dbPath+"?_pragma=journal_mode(wal)&_pragma=foreign_keys(1)")
+	db, err = sql.Open("sqlite", "file:"+dbPath+sqliteConnPragmas)
 	if err != nil {
 		return nil, err
 	}
@@ -51,11 +57,21 @@ func BackupDB(destPath string) error {
 	if _, err := db.Exec("PRAGMA wal_checkpoint(TRUNCATE)"); err != nil {
 		return err
 	}
-	src, err := os.ReadFile(srcPath)
+	// Stream the DB file via io.Copy so large databases don't balloon RAM.
+	in, err := os.Open(srcPath)
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(destPath, src, 0644)
+	defer in.Close()
+	out, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return err
+	}
+	if _, err := io.Copy(out, in); err != nil {
+		_ = out.Close()
+		return err
+	}
+	return out.Close()
 }
 
 // RestoreDB replaces the active DB with the file at srcPath.
@@ -89,7 +105,7 @@ func RestoreDB(srcPath string) error {
 	}
 	_ = testDB.Close()
 
-	connStr := "file:" + destPath + "?_pragma=journal_mode(wal)&_pragma=foreign_keys(1)"
+	connStr := "file:" + destPath + sqliteConnPragmas
 
 	if db != nil {
 		_ = db.Close()

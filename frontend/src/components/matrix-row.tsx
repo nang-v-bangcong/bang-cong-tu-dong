@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { MoreVertical } from 'lucide-react'
 import { formatWon, type Worksite } from '../lib/utils'
 import { type models } from '../../wailsjs/go/models'
@@ -28,7 +29,7 @@ interface Props {
   onRowMenu?: (userId: number, userName: string, x: number, y: number) => void
 }
 
-export function MatrixBodyRow(p: Props) {
+function MatrixBodyRowInner(p: Props) {
   const { row, days, yearMonth, worksites, selected, focus, preview, todayDay, colorOn, paintMode, paintCoef, paintWsId, editSignal, editChar, stickyLeft, stickyRight, onRowMenu } = p
   const openMenu = (e: React.MouseEvent) => {
     if (!onRowMenu) return
@@ -85,3 +86,45 @@ export function MatrixBodyRow(p: Props) {
     </tr>
   )
 }
+
+// Bail on renders that don't affect THIS row. Parent re-renders on every cell
+// click (selection/focus state), so without this each click reconciles N rows ×
+// ~31 cells. `selected` uses cellKey "userId-day" (dash); `preview` uses
+// "userId:day" (colon) — so the prefix must match the caller.
+function rowKeysEqual(a: Set<string>, b: Set<string>, prefix: string): boolean {
+  let aCount = 0
+  for (const k of a) {
+    if (k.startsWith(prefix)) {
+      if (!b.has(k)) return false
+      aCount++
+    }
+  }
+  let bCount = 0
+  for (const k of b) if (k.startsWith(prefix)) bCount++
+  return aCount === bCount
+}
+
+export const MatrixBodyRow = memo(MatrixBodyRowInner, (a, b) => {
+  if (a.row !== b.row) return false
+  if (a.days !== b.days) return false
+  if (a.yearMonth !== b.yearMonth) return false
+  if (a.worksites !== b.worksites) return false
+  if (a.todayDay !== b.todayDay) return false
+  if (a.colorOn !== b.colorOn) return false
+  if (a.paintMode !== b.paintMode) return false
+  if (a.paintCoef !== b.paintCoef) return false
+  if (a.paintWsId !== b.paintWsId) return false
+  if (a.editSignal !== b.editSignal) return false
+  if (a.editChar !== b.editChar) return false
+
+  const uid = a.row.userId
+  const aFocused = a.focus?.userId === uid
+  const bFocused = b.focus?.userId === uid
+  if (aFocused !== bFocused) return false
+  if (aFocused && a.focus?.day !== b.focus?.day) return false
+
+  if (!rowKeysEqual(a.selected, b.selected, uid + '-')) return false
+  if (!rowKeysEqual(a.preview, b.preview, uid + ':')) return false
+
+  return true
+})
