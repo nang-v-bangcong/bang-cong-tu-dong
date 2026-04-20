@@ -7,6 +7,9 @@ import { PersonalPage } from './pages/personal'
 import { TeamPage } from './pages/team'
 import { MatrixPage } from './pages/matrix'
 import { ExitDialog } from './components/exit-dialog'
+import { checkForUpdate } from './services/version-service'
+import { REPO_RELEASES_URL } from './constants/remote-config'
+import { OpenURL } from '../wailsjs/go/main/App'
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: string | null }> {
   state = { error: null as string | null }
@@ -28,6 +31,24 @@ function App() {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode)
   }, [darkMode])
+
+  useEffect(() => {
+    checkForUpdate().then((r) => {
+      if (!r.hasUpdate || !r.remote) return
+      const remote = r.remote
+      toast.info(`Phiên bản mới ${remote.version}`, {
+        description: remote.changelog || 'Nhấn Tải về để cập nhật',
+        action: {
+          label: 'Tải về',
+          onClick: () => {
+            const url = remote.download_url || REPO_RELEASES_URL
+            OpenURL(url).catch(() => toast.error('Không mở được trình duyệt'))
+          },
+        },
+        duration: 10000,
+      })
+    })
+  }, [])
 
   const handleSave = useCallback(() => {
     // Blur active element to trigger onBlur save handlers.

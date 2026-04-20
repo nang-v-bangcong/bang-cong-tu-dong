@@ -7,6 +7,8 @@ import { MonthPicker } from './month-picker'
 import { WorksiteManager } from './worksite-manager'
 import { AuditLogDialog } from './audit-log'
 import { HelpButton } from './help-button'
+import { BugReportButton } from './bug-report-button'
+import { AnnouncementBar } from './announcement-bar'
 import { BackupDB, RestoreDB } from '../../wailsjs/go/main/App'
 
 export function Header() {
@@ -68,6 +70,7 @@ export function Header() {
 
       <div className="flex-1" />
       <MonthPicker />
+      <AnnouncementBar />
       <div className="flex-1" />
 
       <div className="flex items-center gap-0.5">
@@ -86,6 +89,7 @@ export function Header() {
         <button onClick={handleRestore} className={iconBtn} title="Khôi phục dữ liệu">
           <Upload size={16} />
         </button>
+        <BugReportButton />
         <HelpButton />
         <ThemeToggle />
       </div>

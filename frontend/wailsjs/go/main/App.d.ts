@@ -53,6 +53,8 @@ export function GetMonthAttendance(arg1:number,arg2:string):Promise<Array<models
 
 export function GetMonthSummary(arg1:number,arg2:string):Promise<models.MonthSummary>;
 
+export function GetOSInfo():Promise<string>;
+
 export function GetSelfUser():Promise<models.User>;
 
 export function GetTeamMonthMatrix(arg1:string):Promise<models.TeamMatrix>;
@@ -66,6 +68,8 @@ export function GetToday():Promise<string>;
 export function GetWorksiteSummary(arg1:number,arg2:string):Promise<Array<models.WorksiteSummary>>;
 
 export function GetWorksites():Promise<Array<models.Worksite>>;
+
+export function OpenURL(arg1:string):Promise<void>;
 
 export function Quit():Promise<void>;
 

@@ -102,6 +102,10 @@ export function GetMonthSummary(arg1, arg2) {
   return window['go']['main']['App']['GetMonthSummary'](arg1, arg2);
 }
 
+export function GetOSInfo() {
+  return window['go']['main']['App']['GetOSInfo']();
+}
+
 export function GetSelfUser() {
   return window['go']['main']['App']['GetSelfUser']();
 }
@@ -128,6 +132,10 @@ export function GetWorksiteSummary(arg1, arg2) {
 
 export function GetWorksites() {
   return window['go']['main']['App']['GetWorksites']();
+}
+
+export function OpenURL(arg1) {
+  return window['go']['main']['App']['OpenURL'](arg1);
 }
 
 export function Quit() {

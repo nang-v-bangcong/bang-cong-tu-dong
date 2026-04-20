@@ -4,6 +4,9 @@ import (
 	"bang-cong/internal/models"
 	"bang-cong/internal/services"
 	"context"
+	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -46,6 +49,21 @@ func (a *App) beforeClose(ctx context.Context) (prevent bool) {
 func (a *App) Quit() {
 	a.quitConfirm = true
 	runtime.Quit(a.ctx)
+}
+
+// OpenURL — mở URL http/https bằng browser mặc định của OS.
+func (a *App) OpenURL(url string) error {
+	if !strings.HasPrefix(url, "https://") && !strings.HasPrefix(url, "http://") {
+		return errors.New("invalid url scheme")
+	}
+	runtime.BrowserOpenURL(a.ctx, url)
+	return nil
+}
+
+// GetOSInfo — metadata OS gửi kèm bug report (platform / arch / build).
+func (a *App) GetOSInfo() string {
+	env := runtime.Environment(a.ctx)
+	return fmt.Sprintf("%s %s (%s)", env.Platform, env.Arch, env.BuildType)
 }
 
 // --- User ---
