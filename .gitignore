@@ -11,6 +11,9 @@ coverage.out
 .claude/scheduled_tasks.lock
 *.syso
 worker/.dev.vars
+worker/.wrangler/
 go.work
 go.work.sum
 admin/build/
+admin/frontend/node_modules/
+admin/frontend/dist/
