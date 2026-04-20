@@ -1,1 +1,5 @@
-{"enabled":false,"text":"","color":"black"}
+{
+  "enabled": true,
+  "text": "Test thông báo chiều 20/04",
+  "color": "green"
+}
