@@ -56,6 +56,12 @@ export function HelpDialog({ tab, onClose }: Props) {
         </header>
         <div className="p-6 help-content">
           <Content />
+          <div
+            className="mt-6 pt-3 text-xs text-center print:mt-4"
+            style={{ borderTop: '1px solid var(--border)', color: 'var(--text-muted)' }}
+          >
+            Tác giả: Văn Năng
+          </div>
         </div>
       </div>
     </div>
