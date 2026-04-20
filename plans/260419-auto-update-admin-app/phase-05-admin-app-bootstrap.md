@@ -11,8 +11,8 @@
 - **Date:** 2026-04-19
 - **Description:** Folder `admin/` monorepo + Go workspace `go.work` + Wails v2 admin app (`BangCong_Admin`) React+TS+Tailwind. Bootstrap: sidebar 3 tab (Bản mới / Thông báo / Báo lỗi) + content area. PAT modal lần đầu: nhập PAT + repo, validate `GET /user` + `/repos/...`, lưu wincred target `BangCongAdmin/GitHubPAT`. `admin/build.bat` → `admin/build/bin/BangCong_Admin.exe`.
 - **Priority:** Cao (block phase 06-08).
-- **Implementation status:** Pending
-- **Review status:** Pending
+- **Implementation status:** Completed
+- **Review status:** Completed (user-verified 2026-04-19)
 
 ## Key Insights
 
@@ -109,15 +109,15 @@ repo/
 
 ## Todo list
 
-- [ ] `wails init` tạo `admin/`.
-- [ ] Tạo `go.work`, update `.gitignore`.
-- [ ] Rename module, config `wails.json`.
-- [ ] `go get wincred`.
-- [ ] Viết `wincred-store.go`.
-- [ ] Viết admin `app.go` với 4 method credentials.
-- [ ] Viết frontend: App.tsx, sidebar, setup-modal, 3 page stub, admin-store, github-api stub.
-- [ ] Copy `style.css`.
-- [ ] Build + test wincred flow.
+- [x] `wails init` tạo `admin/`.
+- [x] Tạo `go.work`, update `.gitignore`.
+- [x] Rename module, config `wails.json`.
+- [x] `go get wincred`.
+- [x] Viết `wincred-store.go`.
+- [x] Viết admin `app.go` với 4 method credentials.
+- [x] Viết frontend: App.tsx, sidebar, setup-modal, 3 page stub, admin-store, github-api stub.
+- [x] Copy `style.css`.
+- [x] Build + test wincred flow.
 
 ## Success Criteria
 

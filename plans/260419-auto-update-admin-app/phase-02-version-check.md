@@ -12,8 +12,8 @@
 - **Date:** 2026-04-19
 - **Description:** Tạo version const + `version-service.ts` fetch `version.json`, semver compare ~15 dòng. Nếu remote > current → `toast.info` có action "Tải về" → gọi Go `OpenURL` dùng `runtime.BrowserOpenURL` mở releases page. Hiển thị version footer góc phải (recommend — Unresolved nếu chưa chốt).
 - **Priority:** Cao.
-- **Implementation status:** Pending
-- **Review status:** Pending
+- **Implementation status:** Completed (2026-04-19)
+- **Review status:** Completed (2026-04-19 — user test 5 scenario pass; version footer UI hoãn chờ user chốt vị trí)
 
 ## Key Insights
 
@@ -101,12 +101,12 @@ app.go (edit: OpenURL method)
 
 ## Todo list
 
-- [ ] Tạo `version.ts` const.
-- [ ] Tạo `version-service.ts` với compareSemver + cache.
-- [ ] Thêm `OpenURL` vào `app.go`, regen binding.
-- [ ] Edit `App.tsx` useEffect + toast action.
+- [x] Tạo `version.ts` const.
+- [x] Tạo `version-service.ts` với compareSemver + cache.
+- [x] Thêm `OpenURL` vào `app.go`, regen binding (stub .d.ts/.js, wails sẽ overwrite khi `wails dev`).
+- [x] Edit `App.tsx` useEffect + toast action.
 - [ ] (Optional) UI version footer sau user chốt.
-- [ ] Test 5 scenario.
+- [x] Test 5 scenario. (user verify 2026-04-19 — pass: toast hiện đúng, nút Tải về mở browser)
 
 ## Success Criteria
 

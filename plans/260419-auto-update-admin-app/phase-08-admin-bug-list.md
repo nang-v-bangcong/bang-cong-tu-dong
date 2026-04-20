@@ -12,8 +12,8 @@
 - **Date:** 2026-04-19
 - **Description:** Tab "Báo lỗi" fetch issues `labels=bug-report&state=open`, paginated 30/page. List: title + ngày + user contact. Detail modal: markdown body + ảnh embed (`react-markdown`). Nút "Đã xử lý" (close + add label `resolved`) + "Đóng kèm note" (comment + close). Badge count sidebar.
 - **Priority:** Trung bình.
-- **Implementation status:** Pending
-- **Review status:** Pending
+- **Implementation status:** Completed
+- **Review status:** Completed (2026-04-20, user manual test pass)
 
 ## Key Insights
 

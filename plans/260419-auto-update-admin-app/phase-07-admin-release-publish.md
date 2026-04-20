@@ -13,8 +13,8 @@
 - **Date:** 2026-04-19
 - **Description:** Tab "Bản mới": hiển thị version hiện tại + đề xuất (patch+1, editable). Scan `../build/bin/*.exe` ModTime mới nhất. Upload: create draft → stream asset có progress event → publish → update `version.json`. Frontend progress bar %.
 - **Priority:** Trung bình.
-- **Implementation status:** Pending
-- **Review status:** Pending
+- **Implementation status:** Completed
+- **Review status:** Completed (2026-04-20, user manual test pass)
 
 ## Key Insights
 

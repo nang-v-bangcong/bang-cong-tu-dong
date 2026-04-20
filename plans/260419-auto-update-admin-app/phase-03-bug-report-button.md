@@ -12,8 +12,21 @@
 - **Date:** 2026-04-19
 - **Description:** Icon `Bug` (Lucide) vào header trước HelpButton, mở dialog form nhập mô tả + (optional) screenshot (html2canvas hoặc upload file) + (optional) userContact. Auto kèm version/os/timestamp. POST lên Worker phase 04. Toast success/error.
 - **Priority:** Cao.
-- **Implementation status:** Pending
-- **Review status:** Pending
+- **Implementation status:** Completed (2026-04-19) — production build `BangCong.exe` 9.7s pass, user e2e test OK từ app thật.
+- **Review status:** Completed — issue #6/#7 GitHub có đầy đủ title `[Bug]`, label `bug-report`, metadata (contact/version 1.0.0/OS `windows amd64 (production)`/timestamp), mô tả, screenshot embed raw URL.
+
+## Implementation summary (2026-04-19)
+
+- `app.go`: thêm `GetOSInfo()` → `fmt.Sprintf("%s %s (%s)", env.Platform, env.Arch, env.BuildType)` qua `runtime.Environment(ctx)`. Import `fmt`. Binding regen thủ công (App.d.ts + App.js) để tsc pass trước khi wails dev regen chính thức.
+- `frontend/package.json`: `html2canvas@^1.4.1` (+5 packages). Bundle 527KB → 572KB (+45KB, acceptable).
+- `frontend/src/services/bug-report-service.ts` (60 dòng): `captureScreenshot()` html2canvas scale=1 useCORS JPEG Q=0.7 → retry Q=0.5 nếu >2.7M chars. `readFileAsDataUrl()` FileReader. `submitBugReport()` fetch POST BUG_REPORT_URL, parse `{error}` body khi fail.
+- `frontend/src/components/bug-report-dialog.tsx` (148 dòng): overlay click-outside + ESC (disabled khi loading). State description/userContact/screenshot/loading/capturing. Nút Chụp → `visibility:hidden` dialog 250ms → captureScreenshot → unhide. Nút Chọn ảnh → file input. Preview 150×100 + X xóa. Warning icon AlertTriangle về upload public. Nút Gửi disabled khi description rỗng.
+- `frontend/src/components/bug-report-button.tsx` (20 dòng): icon `Bug` lucide + state open, pattern y hệt `help-button.tsx`.
+- `frontend/src/components/header.tsx`: import + `<BugReportButton/>` trước `<HelpButton/>`.
+
+**User actions còn lại (sau khi Worker deploy xong phase 04):**
+1. Kill + restart `wails dev` → test 6 scenario trong plan step 7.
+2. Verify bundle size chấp nhận được, tối ưu sau nếu cần.
 
 ## Key Insights
 

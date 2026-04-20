@@ -11,8 +11,8 @@
 - **Date:** 2026-04-19
 - **Description:** Thêm `AnnouncementBar` component vào header, fetch `announcement.json` từ GitHub raw URL (repo public, không auth), hiển thị text 1 dòng với 3 màu (đỏ/xanh lá/đen), ẩn im lặng nếu fail. Mở rộng chiều cao header 4-8px nếu cần.
 - **Priority:** Cao (validate GitHub fetch path trước phase khác).
-- **Implementation status:** Pending
-- **Review status:** Pending
+- **Implementation status:** Completed (2026-04-19)
+- **Review status:** Completed (2026-04-19 — user test 3 màu + off + offline đều pass)
 
 ## Key Insights
 
@@ -136,12 +136,12 @@ App mount → header.tsx render
 
 ## Todo list
 
-- [ ] Tạo `remote-config.ts` với 4 const URL.
-- [ ] Tạo `announcement-service.ts` với cache 5 phút.
-- [ ] Tạo `announcement-bar.tsx` với 3 màu + truncate + title tooltip.
-- [ ] Edit `header.tsx` insert `<AnnouncementBar/>`.
-- [ ] Test với 3 màu + enabled false + offline.
-- [ ] `wails build` không warning mới.
+- [x] Tạo `remote-config.ts` với 4 const URL.
+- [x] Tạo `announcement-service.ts` với cache 5 phút.
+- [x] Tạo `announcement-bar.tsx` với 3 màu + truncate + title tooltip.
+- [x] Edit `header.tsx` insert `<AnnouncementBar/>`.
+- [x] Test với 3 màu + enabled false + offline. (user verify 2026-04-19 — pass)
+- [x] `go build ./...` + `vite build` pass, không warning mới.
 
 ## Success Criteria
 

@@ -12,17 +12,17 @@
 
 | # | File | Status | Scope | Review |
 |---|---|---|---|---|
-| 00 | [phase-00-infra-setup.md](./phase-00-infra-setup.md) | pending | GitHub repo + seed JSON + PAT + Cloudflare account + wrangler deploy | pending |
-| 01 | [phase-01-header-announcement.md](./phase-01-header-announcement.md) | pending | AnnouncementBar fetch raw GitHub, 3 màu, ẩn im lặng khi fail | pending |
-| 02 | [phase-02-version-check.md](./phase-02-version-check.md) | pending | version-service + semver compare + toast action "Tải về" + Go OpenURL | pending |
-| 03 | [phase-03-bug-report-button.md](./phase-03-bug-report-button.md) | pending | Bug icon + dialog + html2canvas + POST Worker + GetOSInfo Go | pending |
-| 04 | [phase-04-cloudflare-worker.md](./phase-04-cloudflare-worker.md) | pending | Worker JS proxy, rate limit, upload screenshot, tạo issue | pending |
-| 05 | [phase-05-admin-app-bootstrap.md](./phase-05-admin-app-bootstrap.md) | pending | go.work + wails init admin/ + PAT modal + wincred | pending |
-| 06 | [phase-06-admin-announcement.md](./phase-06-admin-announcement.md) | pending | Tab Thông báo: form + preview + PUT contents API | pending |
-| 07 | [phase-07-admin-release-publish.md](./phase-07-admin-release-publish.md) | pending | Tab Bản mới: scan .exe + upload stream + progress event | pending |
-| 08 | [phase-08-admin-bug-list.md](./phase-08-admin-bug-list.md) | pending | Tab Báo lỗi: list + detail markdown + close/comment | pending |
-| 09 | [phase-09-build-automation.md](./phase-09-build-automation.md) | pending | bump-version script + build.bat + docs cho Claude | pending |
-| 10 | [phase-10-user-guide.md](./phase-10-user-guide.md) | pending | HUONG-DAN.md tiếng Việt + screenshots placeholder | pending |
+| 00 | [phase-00-infra-setup.md](./phase-00-infra-setup.md) | **completed** | GitHub repo + seed JSON + PAT + Cloudflare account + wrangler deploy | completed |
+| 01 | [phase-01-header-announcement.md](./phase-01-header-announcement.md) | **completed** | AnnouncementBar fetch GitHub Contents API, 3 màu, ẩn im lặng khi fail | **completed** |
+| 02 | [phase-02-version-check.md](./phase-02-version-check.md) | **completed** | version-service + semver compare + toast action "Tải về" + Go OpenURL | **completed** |
+| 03 | [phase-03-bug-report-button.md](./phase-03-bug-report-button.md) | **completed** | Bug icon + dialog + html2canvas + POST Worker + GetOSInfo Go | **completed** |
+| 04 | [phase-04-cloudflare-worker.md](./phase-04-cloudflare-worker.md) | **completed** | Worker JS proxy, rate limit, upload screenshot, tạo issue | **completed** |
+| 05 | [phase-05-admin-app-bootstrap.md](./phase-05-admin-app-bootstrap.md) | **completed** | go.work + wails init admin/ + PAT modal + wincred | **completed** |
+| 06 | [phase-06-admin-announcement.md](./phase-06-admin-announcement.md) | **completed** | Tab Thông báo: form + preview + PUT contents API | **completed** |
+| 07 | [phase-07-admin-release-publish.md](./phase-07-admin-release-publish.md) | **completed** | Tab Bản mới: scan .exe + upload stream + progress event | **completed** |
+| 08 | [phase-08-admin-bug-list.md](./phase-08-admin-bug-list.md) | **completed** | Tab Báo lỗi: list + detail markdown + close/comment | **completed** |
+| 09 | [phase-09-build-automation.md](./phase-09-build-automation.md) | **completed** | bump-version script + build.bat + docs cho Claude | **completed** |
+| 10 | [phase-10-user-guide.md](./phase-10-user-guide.md) | **completed** | HUONG-DAN.md tiếng Việt + screenshots placeholder | **completed** |
 
 ## Ship order (đề xuất)
 

@@ -11,8 +11,20 @@
 - **Date:** 2026-04-19
 - **Description:** Mở rộng stub worker từ phase 00 thành full proxy ~120 dòng: POST JSON từ app, validate, rate-limit 5/phút/IP (KV), upload screenshot qua GitHub Contents API (`screenshots/{ts}.jpg`), tạo issue markdown có metadata + ảnh embed, trả `{success, issue_url}`. CORS `*`.
 - **Priority:** Cao (block phase 03).
-- **Implementation status:** Pending
-- **Review status:** Pending
+- **Implementation status:** Completed (2026-04-19) — KV namespace `4836108f7b754445b84dd3464b3b16ae` tạo xong, Worker deployed live tại `https://bang-cong-bug-report.nangv.workers.dev`.
+- **Review status:** Completed — 4 curl test pass (basic 200, empty 400, OPTIONS 204, 6 req 429) + issue #6/#7 từ app thật có đầy đủ metadata + screenshot embed.
+
+## Implementation summary (2026-04-19)
+
+- `worker/bug-report-proxy.js` (131 dòng): CORS preflight 204, rate-limit KV 5/60s theo `CF-Connecting-IP`, validate description (required, ≤5000 char) + screenshot (≤2MB decoded), upload `screenshots/{unix_ts}.jpg` qua Contents API, tạo issue label `bug-report` với markdown metadata (liên hệ/phiên bản/OS/thời gian) + screenshot embed `![](raw-url)`.
+- `worker/wrangler.toml`: thêm `[[kv_namespaces]] binding=RATE_LIMIT` (placeholder id) + `[vars]` REPO_OWNER/REPO_NAME.
+- `worker/README.md`: bổ sung section "Phase 04 — setup KV rate-limit" kèm lệnh KV + payload spec + 4 curl test (basic/validate/OPTIONS/rate-limit).
+- Không log body → không risk leak PAT nếu user paste nhầm.
+
+**User actions còn lại:**
+1. `cd worker && npx wrangler kv:namespace create "RATE_LIMIT"` → copy `id` → dán vào `wrangler.toml` thay `PASTE_KV_NAMESPACE_ID_HERE`.
+2. `npx wrangler deploy`.
+3. Chạy 4 curl test trong README verify.
 
 ## Key Insights
 

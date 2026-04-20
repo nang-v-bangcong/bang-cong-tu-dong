@@ -10,8 +10,8 @@
 - **Date:** 2026-04-19
 - **Description:** `HUONG-DAN.md` tiếng Việt root repo. Cover: setup lần đầu, phát hành bản mới, đăng thông báo, xử lý báo lỗi, troubleshoot. Placeholder ảnh trong `docs/images/` user screenshot sau.
 - **Priority:** Thấp (sau khi UI stable để screenshot đúng).
-- **Implementation status:** Pending
-- **Review status:** Pending
+- **Implementation status:** Completed
+- **Review status:** Completed
 
 ## Key Insights
 
@@ -79,11 +79,11 @@ repo/
 
 ## Todo list
 
-- [ ] Viết `HUONG-DAN.md` 5 section + ToC.
-- [ ] Tạo `docs/images/.gitkeep`.
-- [ ] Cross-link doc khác.
-- [ ] Review tiếng Việt + dấu.
-- [ ] User screenshot UI fill placeholder (async, sau phase).
+- [x] Viết `HUONG-DAN.md` 5 section + ToC (257 dòng, tiếng Việt đầy dấu).
+- [x] Tạo `docs/images/.gitkeep` (folder rỗng commit được).
+- [x] Cross-link `docs/setup-github.md`, `setup-cloudflare.md`, `build-process.md`.
+- [x] Review tiếng Việt — 6 section, troubleshoot 6 case.
+- [ ] User screenshot UI fill placeholder (async, user làm sau — placeholder đã đánh dấu trong file).
 
 ## Success Criteria
 

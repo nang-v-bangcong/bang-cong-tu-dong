@@ -11,8 +11,8 @@
 - **Date:** 2026-04-19
 - **Description:** Node script `scripts/bump-version.js` đọc `frontend/src/constants/version.ts`, tăng patch mặc định (`--minor`/`--major` override), ghi lại file + update `wails.json` `info.productVersion` + `versioninfo.json` FixedFileInfo. Không auto-commit. Sửa `build.bat` để call script trước `wails build`. Doc `docs/build-process.md` để Claude Code reference khi user nói "build cập nhật đi".
 - **Priority:** Thấp (QoL, sau khi admin ship).
-- **Implementation status:** Pending
-- **Review status:** Pending
+- **Implementation status:** Completed
+- **Review status:** Completed
 
 ## Key Insights
 
@@ -149,12 +149,12 @@ console.log(`v${current} → v${next} (3 files updated)`)
 
 ## Todo list
 
-- [ ] Viết `bump-version.js` (~100 dòng).
-- [ ] Test 3 flag (patch/minor/major).
-- [ ] Edit `build.bat`.
-- [ ] Viết `docs/build-process.md` tiếng Việt.
-- [ ] Test full flow từ "build cập nhật đi" → admin publish.
-- [ ] (Optional) Custom slash command trong `.claude/commands/`.
+- [x] Viết `bump-version.js` (72 dòng, native fs/path, no deps).
+- [x] Test 3 flag (patch → 1.0.1, minor → 1.1.0, major → 2.0.0 — all verified).
+- [x] Edit `build.bat` (thêm step bump + `BUMP_SKIP` gate, chcp 65001 UTF-8).
+- [x] Viết `docs/build-process.md` tiếng Việt (102 dòng, 5 section).
+- [ ] Test full flow từ "build cập nhật đi" → admin publish (cần user verify thực tế khi build bản mới).
+- [ ] (Optional) Custom slash command trong `.claude/commands/` — skip, doc đủ.
 
 ## Success Criteria
 

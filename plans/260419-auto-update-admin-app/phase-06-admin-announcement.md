@@ -11,8 +11,8 @@
 - **Date:** 2026-04-19
 - **Description:** Tab "Thông báo": form textarea (max 100 char) + 3 radio màu + toggle bật/tắt + preview mimic `AnnouncementBar`. Nút "Đăng" → Go backend: GET current SHA → PUT mới base64 content + SHA + message "chore: update announcement". Error 401/409 handling.
 - **Priority:** Trung bình.
-- **Implementation status:** Pending
-- **Review status:** Pending
+- **Implementation status:** Completed
+- **Review status:** Completed (2026-04-20, user manual test pass)
 
 ## Key Insights
 

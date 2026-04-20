@@ -11,8 +11,21 @@
 - **Date:** 2026-04-19
 - **Description:** User + Claude ngồi cạnh setup đồng bộ: GitHub account mới (email/pwd riêng, không Google OAuth), tạo repo public `bang-cong-tu-dong`, push seed files, tạo fine-grained PAT scope hẹp, đăng ký Cloudflare free, deploy Worker stub, set secret. Cuối phase test e2e: curl Worker trả về 200.
 - **Priority:** Cao (blocking mọi phase khác).
-- **Implementation status:** Pending
-- **Review status:** Pending
+- **Implementation status:** Completed (2026-04-19)
+- **Review status:** Completed
+
+## Implementation summary (2026-04-19)
+
+- GitHub account `nang-v-bangcong` created, 2FA enabled, PAT `BangCongAdmin-PAT` generated (Contents+Issues R/W, expires 2027-04-19).
+- Repo public https://github.com/nang-v-bangcong/bang-cong-tu-dong pushed với 25 files (seed JSON + worker stub + docs + plans).
+- Raw fetch verified: `raw.githubusercontent.com/.../announcement.json` trả JSON không cần auth.
+- Cloudflare account signup + 2FA, workers.dev subdomain `nangv`, Worker `bang-cong-bug-report` deployed, secret `GITHUB_TOKEN` set.
+- Worker URL https://bang-cong-bug-report.nangv.workers.dev trả `{"ok":true}` verified qua browser.
+- Credentials backup ghi tại `D:\backup\bang-cong-credentials.md` (ngoài repo).
+
+## Incidents
+
+- **2026-04-19**: PAT đầu tiên bị leak khi user paste vào chat để test curl syntax (header quote issue trên PowerShell). Token đã revoke ngay, generate token mới. Rút kinh nghiệm: dùng cú pháp `curl -u username:token` thay `-H "Authorization: Bearer"` để tránh quote escaping trên Windows.
 
 ## Key Insights
 
@@ -116,26 +129,26 @@ Local machine
 
 ## Todo list
 
-- [ ] Tạo GitHub account + 2FA + recovery codes saved.
-- [ ] Tạo repo public `bang-cong-tu-dong`.
-- [ ] Init git remote + push 2 seed JSON + screenshots/.gitkeep.
-- [ ] Tạo fine-grained PAT, lưu password manager.
-- [ ] Đăng ký Cloudflare + 2FA.
-- [ ] Viết `worker/wrangler.toml` + `worker/bug-report-proxy.js` stub + `worker/README.md`.
-- [ ] `npx wrangler deploy` thành công, note Worker URL.
-- [ ] `npx wrangler secret put GITHUB_TOKEN` thành công.
-- [ ] curl test Worker → `{"ok":true}`.
-- [ ] Update `.gitignore`.
-- [ ] Viết `docs/setup-github.md` + `docs/setup-cloudflare.md`.
+- [x] Tạo GitHub account + 2FA + recovery codes saved.
+- [x] Tạo repo public `bang-cong-tu-dong`.
+- [x] Init git remote + push 2 seed JSON + screenshots/.gitkeep.
+- [x] Tạo fine-grained PAT, lưu password manager.
+- [x] Đăng ký Cloudflare + 2FA.
+- [x] Viết `worker/wrangler.toml` + `worker/bug-report-proxy.js` stub + `worker/README.md`.
+- [x] `npx wrangler deploy` thành công, note Worker URL (`https://bang-cong-bug-report.nangv.workers.dev`).
+- [x] `npx wrangler secret put GITHUB_TOKEN` thành công.
+- [x] Browser test Worker → `{"ok":true}`.
+- [x] Update `.gitignore`.
+- [x] Viết `docs/setup-github.md` + `docs/setup-cloudflare.md`.
 
 ## Success Criteria
 
-- [ ] `https://github.com/{owner}/bang-cong-tu-dong` public accessible.
-- [ ] `https://raw.githubusercontent.com/{owner}/bang-cong-tu-dong/main/announcement.json` trả về JSON (no auth).
-- [ ] PAT test `curl -H "Authorization: Bearer {PAT}" https://api.github.com/repos/{owner}/bang-cong-tu-dong` trả 200.
-- [ ] Worker URL accessible, trả `{"ok":true}`.
-- [ ] Secret `GITHUB_TOKEN` hiển thị trong Cloudflare dashboard (value ẩn).
-- [ ] `.gitignore` đã loại các file nhạy cảm.
+- [x] `https://github.com/nang-v-bangcong/bang-cong-tu-dong` public accessible.
+- [x] `https://raw.githubusercontent.com/nang-v-bangcong/bang-cong-tu-dong/main/announcement.json` trả về JSON (no auth).
+- [x] PAT test `curl -u nang-v-bangcong:{PAT} https://api.github.com/user` trả `"login": "nang-v-bangcong"` với `admin: true, push: true`.
+- [x] Worker URL `https://bang-cong-bug-report.nangv.workers.dev` accessible, trả `{"ok":true}`.
+- [x] Secret `GITHUB_TOKEN` uploaded thành công (wrangler báo `Success!`).
+- [x] `.gitignore` đã loại các file nhạy cảm (`*.env`, `worker/.dev.vars`, `go.work`, `admin/build/`).
 
 ## Risk Assessment
 
