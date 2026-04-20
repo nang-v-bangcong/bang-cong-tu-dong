@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 echo === Bang Cong - Installer Build ===
 echo.
 
@@ -8,6 +9,16 @@ if %errorlevel% neq 0 (
     echo ERROR: NSIS not installed!
     echo Install: scoop install nsis  or  choco install nsis
     exit /b 1
+)
+
+:: Bump version (skip if BUMP_SKIP=1)
+if "%BUMP_SKIP%"=="" (
+    echo Bumping patch version...
+    node scripts/bump-version.js --patch
+    if errorlevel 1 (
+        echo BUMP FAILED!
+        exit /b 1
+    )
 )
 
 :: Build with NSIS

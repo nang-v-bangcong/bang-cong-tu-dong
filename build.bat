@@ -1,13 +1,26 @@
 @echo off
+chcp 65001 >nul
 echo === Bang Cong - Production Build ===
 echo.
 
+:: Bump version (skip if BUMP_SKIP=1)
+if "%BUMP_SKIP%"=="" (
+    echo [1/4] Bumping patch version...
+    node scripts/bump-version.js --patch
+    if errorlevel 1 (
+        echo BUMP FAILED!
+        exit /b 1
+    )
+) else (
+    echo [1/4] BUMP_SKIP set, keeping current version
+)
+
 :: Clean
-echo [1/3] Cleaning old build...
+echo [2/4] Cleaning old build...
 if exist build\bin rmdir /s /q build\bin
 
 :: Build
-echo [2/3] Building Windows exe...
+echo [3/4] Building Windows exe...
 wails build -clean -ldflags "-s -w" -trimpath
 if errorlevel 1 (
     echo BUILD FAILED!
@@ -17,10 +30,10 @@ if errorlevel 1 (
 :: Optional: UPX compress
 where upx >nul 2>&1
 if %errorlevel%==0 (
-    echo [3/3] Compressing with UPX...
+    echo [4/4] Compressing with UPX...
     upx --best build\bin\BangCong.exe
 ) else (
-    echo [3/3] UPX not found, skipping compression
+    echo [4/4] UPX not found, skipping compression
 )
 
 echo.
