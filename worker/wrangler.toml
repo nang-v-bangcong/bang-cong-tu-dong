@@ -1,3 +1,11 @@
 name = "bang-cong-bug-report"
 main = "bug-report-proxy.js"
 compatibility_date = "2025-01-01"
+
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "4836108f7b754445b84dd3464b3b16ae"
+
+[vars]
+REPO_OWNER = "nang-v-bangcong"
+REPO_NAME = "bang-cong-tu-dong"
